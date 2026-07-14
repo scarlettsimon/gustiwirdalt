@@ -113,7 +113,7 @@
 
 <script>
 /* ====== HIER ANPASSEN ====== */
-const NAME    = "[Name des Kollegen]";
+const NAME    = "Gusti";
 const MESSAGE = "Alles Gute zum Geburtstag, König der Piraten! 🏴‍☠️ Auf ein Jahr voller Abenteuer!";
 /* =========================== */
 document.getElementById('c-name').textContent = NAME;
@@ -186,8 +186,8 @@ function checkHit(){
 function snapAndCelebrate(target){
   done = true;
   hat.style.transition='left .2s, top .2s';
-  hat.style.left = (target.left + target.width/2 - hat.offsetWidth/2) + 'px';
-  hat.style.top  = (target.top - hat.offsetHeight*0.55) + 'px';
+  hat.style.left = (target.left + target.width/2 - hat.offsetWidth/2 + hat.offsetWidth*0.12) + 'px';
+  hat.style.top  = (target.top - hat.offsetHeight*0.35) + 'px';
   document.getElementById('hint').style.display='none';
   setTimeout(()=>{
     document.getElementById('celebrate').style.display='flex';
