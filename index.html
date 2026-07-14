@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Happy Birthday!</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; overflow:hidden; background:#000; font-family:'Trebuchet MS', system-ui, sans-serif; }
+  #stage { position:relative; width:100vw; height:100vh; overflow:hidden; }
+
+  /* Foto des Kollegen – FIXER Platz, mittig */
+  #person {
+    position:absolute;
+    left:50%; top:52%;
+    transform:translate(-50%,-50%);
+    width:min(48vw, 230px);
+    z-index:2;
+    text-align:center;
+  }
+  /* PLATZHALTER – hier später das freigestellte Foto einsetzen (siehe Hinweis unten) */
+  #person-img {
+    width:100%;
+    aspect-ratio:1/1.6;
+    background:
+      radial-gradient(circle at 50% 22%, #ffd9a8 0 18%, transparent 19%),
+      linear-gradient(#3a7bd5, #2b5aa0);
+    border-radius:60px 60px 30px 30px;
+    display:flex; align-items:flex-end; justify-content:center;
+    color:#fff; font-size:.8rem; padding-bottom:10px; opacity:.9;
+    box-shadow:0 0 40px rgba(255,255,255,.05);
+  }
+  /* Zielzone: wo der Hut "sitzen" muss (oben am Kopf) */
+  #head-target { position:absolute; left:50%; top:8%; width:44%; height:22%; transform:translateX(-50%); }
+
+  /* Strohhut */
+  #hat {
+    position:absolute;
+    width:min(34vw, 150px);
+    z-index:5;
+    cursor:grab;
+    touch-action:none;
+    filter:drop-shadow(0 6px 12px rgba(0,0,0,.6));
+    transition:filter .2s;
+  }
+  #hat.grabbing { cursor:grabbing; }
+  #hat svg { width:100%; height:auto; display:block; pointer-events:none; }
+
+  /* Titeltext */
+  #hint {
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    color:#fff; font-size:clamp(1.4rem, 6vw, 2.4rem);
+    font-weight:bold; text-align:center; width:90%;
+    text-shadow:0 2px 12px rgba(0,0,0,.8);
+    letter-spacing:1px; z-index:1; pointer-events:none;
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:.85} 50%{opacity:1; transform:translate(-50%,-50%) scale(1.04)} }
+
+  /* Birthday-Overlay */
+  #celebrate {
+    position:absolute; inset:0; z-index:10;
+    display:none; flex-direction:column;
+    align-items:center; justify-content:flex-start;
+    padding-top:12vh; text-align:center; pointer-events:none;
+  }
+  #celebrate h1 {
+    color:#ffd93b; font-size:clamp(2rem, 11vw, 4.5rem);
+    text-shadow:0 0 20px rgba(255,217,59,.6), 0 4px 10px rgba(0,0,0,.7);
+    animation:pop .6s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  #celebrate .name {
+    color:#fff; font-size:clamp(1.3rem, 6vw, 2.2rem);
+    margin-top:10px; font-weight:bold;
+    animation:pop .6s .2s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  #celebrate .msg {
+    color:#e8e8e8; font-size:clamp(1rem, 4.2vw, 1.3rem);
+    margin-top:14px; max-width:85%; line-height:1.5;
+    animation:pop .6s .35s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  @keyframes pop { from{opacity:0; transform:scale(.4)} to{opacity:1; transform:scale(1)} }
+
+  .confetti { position:absolute; top:-20px; width:12px; height:18px; z-index:9; will-change:transform; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <div id="hint">Ziehe dir den Hut an</div>
+
+  <div id="person">
+    <!-- ▼▼▼ PLATZHALTER: dieses <div> später durch <img src="deinfoto.png"> ersetzen ▼▼▼ -->
+    <div id="person-img">Foto hier einfügen</div>
+    <!-- ▲▲▲ ------------------------------------------------------------------ ▲▲▲ -->
+    <div id="head-target"></div>
+  </div>
+
+  <!-- Strohhut (SVG) -->
+  <div id="hat">
+    <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="100" cy="95" rx="95" ry="28" fill="#f0c14b" stroke="#c8952f" stroke-width="3"/>
+      <ellipse cx="100" cy="90" rx="95" ry="28" fill="#f7d772"/>
+      <path d="M40 92 Q100 118 160 92 L160 88 Q100 112 40 88 Z" fill="#e0b03e"/>
+      <path d="M45 90 Q45 40 100 38 Q155 40 155 90 Q100 72 45 90 Z" fill="#f7d772" stroke="#c8952f" stroke-width="2"/>
+      <rect x="45" y="72" width="110" height="16" rx="4" fill="#c0392b"/>
+      <path d="M45 80 Q100 96 155 80 L155 88 Q100 104 45 88 Z" fill="#a5281b"/>
+    </svg>
+  </div>
+
+  <div id="celebrate">
+    <h1>Happy Birthday!</h1>
+    <div class="name" id="c-name">[Name des Kollegen]</div>
+    <div class="msg" id="c-msg">Alles Gute zum Geburtstag, König der Piraten! 🏴‍☠️ Auf ein Jahr voller Abenteuer!</div>
+  </div>
+
+</div>
+
+<script>
+/* ====== HIER ANPASSEN ====== */
+const NAME    = "[Name des Kollegen]";
+const MESSAGE = "Alles Gute zum Geburtstag, König der Piraten! 🏴‍☠️ Auf ein Jahr voller Abenteuer!";
+/* =========================== */
+document.getElementById('c-name').textContent = NAME;
+document.getElementById('c-msg').textContent  = MESSAGE;
+
+const stage = document.getElementById('stage');
+const hat   = document.getElementById('hat');
+let done = false;
+
+/* Hut an zufälligen Ort setzen (nicht über dem Kopf, damit's eine Aufgabe bleibt) */
+function placeHatRandom(){
+  const w = stage.clientWidth, h = stage.clientHeight;
+  const hw = hat.offsetWidth, hh = hat.offsetHeight;
+  let x, y, tries=0;
+  const cx = w/2, cy = h*0.15; // Nähe Kopf meiden
+  do {
+    x = Math.random()*(w-hw);
+    y = Math.random()*(h-hh);
+    tries++;
+  } while (Math.hypot(x-cx, y-cy) < Math.min(w,h)*0.28 && tries<30);
+  hat.style.left = x+'px';
+  hat.style.top  = y+'px';
+}
+window.addEventListener('load', placeHatRandom);
+
+/* Drag (Touch + Maus) */
+let dragging=false, offX=0, offY=0;
+function start(e){
+  if(done) return;
+  dragging=true; hat.classList.add('grabbing');
+  const p = point(e);
+  const r = hat.getBoundingClientRect();
+  offX = p.x - r.left; offY = p.y - r.top;
+  e.preventDefault();
+}
+function move(e){
+  if(!dragging) return;
+  const p = point(e);
+  hat.style.left = (p.x - offX) + 'px';
+  hat.style.top  = (p.y - offY) + 'px';
+  e.preventDefault();
+}
+function end(){
+  if(!dragging) return;
+  dragging=false; hat.classList.remove('grabbing');
+  checkHit();
+}
+function point(e){
+  const t = e.touches ? e.touches[0] : e;
+  return {x:t.clientX, y:t.clientY};
+}
+hat.addEventListener('mousedown', start);
+window.addEventListener('mousemove', move);
+window.addEventListener('mouseup', end);
+hat.addEventListener('touchstart', start, {passive:false});
+window.addEventListener('touchmove', move, {passive:false});
+window.addEventListener('touchend', end);
+
+/* Treffer prüfen: Hut über Kopf-Zielzone? */
+function checkHit(){
+  const target = document.getElementById('head-target').getBoundingClientRect();
+  const hr = hat.getBoundingClientRect();
+  const hatCx = hr.left + hr.width/2;
+  const hatCy = hr.top + hr.height/2;
+  if(hatCx > target.left && hatCx < target.right &&
+     hatCy > target.top - 40 && hatCy < target.bottom + 20){
+    snapAndCelebrate(target);
+  }
+}
+function snapAndCelebrate(target){
+  done = true;
+  hat.style.transition='left .2s, top .2s';
+  hat.style.left = (target.left + target.width/2 - hat.offsetWidth/2) + 'px';
+  hat.style.top  = (target.top - hat.offsetHeight*0.35) + 'px';
+  document.getElementById('hint').style.display='none';
+  setTimeout(()=>{
+    document.getElementById('celebrate').style.display='flex';
+    burstConfetti();
+  }, 220);
+}
+
+/* Konfetti */
+const COLORS = ['#ffd93b','#ff5252','#4dd0e1','#69f0ae','#ff80ab','#fff'];
+function burstConfetti(){
+  for(let i=0;i<120;i++){
+    setTimeout(spawnConfetto, i*25);
+  }
+}
+function spawnConfetto(){
+  const c = document.createElement('div');
+  c.className='confetti';
+  c.style.left = Math.random()*100 + 'vw';
+  c.style.background = COLORS[Math.floor(Math.random()*COLORS.length)];
+  c.style.borderRadius = Math.random()<.5 ? '2px' : '50%';
+  const dur = 2.5 + Math.random()*2;
+  const drift = (Math.random()*2-1)*120;
+  c.animate([
+    {transform:`translate(0,0) rotate(0deg)`, opacity:1},
+    {transform:`translate(${drift}px, 110vh) rotate(${720+Math.random()*720}deg)`, opacity:1}
+  ], {duration:dur*1000, easing:'ease-in'});
+  stage.appendChild(c);
+  setTimeout(()=>c.remove(), dur*1000);
+}
+</script>
+</body>
+</html>
