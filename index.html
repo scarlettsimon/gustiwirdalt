@@ -21,17 +21,13 @@
   /* PLATZHALTER – hier später das freigestellte Foto einsetzen (siehe Hinweis unten) */
   #person-img {
     width:100%;
-    aspect-ratio:1/1.6;
-    background:
-      radial-gradient(circle at 50% 22%, #ffd9a8 0 18%, transparent 19%),
-      linear-gradient(#3a7bd5, #2b5aa0);
-    border-radius:60px 60px 30px 30px;
-    display:flex; align-items:flex-end; justify-content:center;
-    color:#fff; font-size:.8rem; padding-bottom:10px; opacity:.9;
-    box-shadow:0 0 40px rgba(255,255,255,.05);
+    height:auto;
+    background:none;      /* kein Hintergrund – transparentes PNG steht sauber auf Schwarz */
+    object-fit:contain;
+    display:block;
   }
-  /* Zielzone: wo der Hut "sitzen" muss (oben am Kopf) */
-  #head-target { position:absolute; left:50%; top:8%; width:44%; height:22%; transform:translateX(-50%); }
+  /* Zielzone: wo der Hut "sitzen" muss – tiefer, direkt auf den Haaren/Kopf */
+  #head-target { position:absolute; left:50%; top:22%; width:44%; height:22%; transform:translateX(-50%); }
 
   /* Strohhut */
   #hat {
@@ -119,7 +115,7 @@
 
 <script>
 /* ====== HIER ANPASSEN ====== */
-const NAME    = "[Gusti]";
+const NAME    = "GUSTI";
 const MESSAGE = "Alles Gute zum Geburtstag, König der Piraten! 🏴‍☠️ Auf ein Jahr voller Abenteuer!";
 /* =========================== */
 document.getElementById('c-name').textContent = NAME;
@@ -184,8 +180,8 @@ function checkHit(){
   const hr = hat.getBoundingClientRect();
   const hatCx = hr.left + hr.width/2;
   const hatCy = hr.top + hr.height/2;
-  if(hatCx > target.left && hatCx < target.right &&
-     hatCy > target.top - 40 && hatCy < target.bottom + 20){
+  if(hatCx > target.left - 30 && hatCx < target.right + 30 &&
+     hatCy > target.top - 60 && hatCy < target.bottom + 40){
     snapAndCelebrate(target);
   }
 }
@@ -193,7 +189,7 @@ function snapAndCelebrate(target){
   done = true;
   hat.style.transition='left .2s, top .2s';
   hat.style.left = (target.left + target.width/2 - hat.offsetWidth/2) + 'px';
-  hat.style.top  = (target.top - hat.offsetHeight*0.35) + 'px';
+  hat.style.top  = (target.top - hat.offsetHeight*0.12) + 'px';
   document.getElementById('hint').style.display='none';
   setTimeout(()=>{
     document.getElementById('celebrate').style.display='flex';
