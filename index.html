@@ -18,7 +18,7 @@
     z-index:2;
     text-align:center;
   }
-  /* PLATZHALTER – hier später das freigestellte Foto einsetzen (siehe Hinweis unten) */
+  /* Foto des Kollegen */
   #person-img {
     width:100%;
     height:auto;
@@ -27,7 +27,7 @@
     display:block;
   }
   /* Zielzone: wo der Hut "sitzen" muss – tiefer, direkt auf den Haaren/Kopf */
-  #head-target { position:absolute; left:50%; top:22%; width:44%; height:22%; transform:translateX(-50%); }
+  #head-target { position:absolute; left:50%; top:14%; width:44%; height:20%; transform:translateX(-50%); }
 
   /* Strohhut */
   #hat {
@@ -42,14 +42,14 @@
   #hat.grabbing { cursor:grabbing; }
   #hat svg { width:100%; height:auto; display:block; pointer-events:none; }
 
-  /* Titeltext */
+  /* Titeltext – unter dem Bild, damit lesbar */
   #hint {
-    position:absolute; left:50%; top:50%;
+    position:absolute; left:50%; top:82%;
     transform:translate(-50%,-50%);
     color:#fff; font-size:clamp(1.4rem, 6vw, 2.4rem);
     font-weight:bold; text-align:center; width:90%;
     text-shadow:0 2px 12px rgba(0,0,0,.8);
-    letter-spacing:1px; z-index:1; pointer-events:none;
+    letter-spacing:1px; z-index:6; pointer-events:none;
     animation:pulse 1.8s ease-in-out infinite;
   }
   @keyframes pulse { 0%,100%{opacity:.85} 50%{opacity:1; transform:translate(-50%,-50%) scale(1.04)} }
@@ -87,9 +87,7 @@
   <div id="hint">Ziehe dir den Hut an</div>
 
   <div id="person">
-    <!-- ▼▼▼ PLATZHALTER: dieses <div> später durch <img src="deinfoto.png"> ersetzen ▼▼▼ -->
-    <img id="person-img" src="Gusti.PNG" alt="Kollege">
-    <!-- ▲▲▲ ------------------------------------------------------------------ ▲▲▲ -->
+    <img id="person-img" src="Gusti.PNG" alt="Gusti">
     <div id="head-target"></div>
   </div>
 
@@ -115,7 +113,7 @@
 
 <script>
 /* ====== HIER ANPASSEN ====== */
-const NAME    = "GUSTI";
+const NAME    = "[Name des Kollegen]";
 const MESSAGE = "Alles Gute zum Geburtstag, König der Piraten! 🏴‍☠️ Auf ein Jahr voller Abenteuer!";
 /* =========================== */
 document.getElementById('c-name').textContent = NAME;
@@ -189,7 +187,7 @@ function snapAndCelebrate(target){
   done = true;
   hat.style.transition='left .2s, top .2s';
   hat.style.left = (target.left + target.width/2 - hat.offsetWidth/2) + 'px';
-  hat.style.top  = (target.top - hat.offsetHeight*0.12) + 'px';
+  hat.style.top  = (target.top - hat.offsetHeight*0.55) + 'px';
   document.getElementById('hint').style.display='none';
   setTimeout(()=>{
     document.getElementById('celebrate').style.display='flex';
