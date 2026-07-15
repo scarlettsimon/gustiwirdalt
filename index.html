@@ -175,15 +175,83 @@
   #found {
     position:absolute; inset:0; z-index:30; display:none;
     flex-direction:column; align-items:center; justify-content:center;
-    background:radial-gradient(circle at 50% 45%, rgba(255,217,59,.25), rgba(0,0,0,.92) 70%);
+    background:radial-gradient(circle at 50% 55%, rgba(255,217,59,.18), rgba(0,0,0,.95) 70%);
     text-align:center; padding:20px; pointer-events:none;
+    overflow:hidden;
   }
-  #found h1 {
-    color:#ffd93b; font-size:clamp(1.8rem,9vw,3.4rem);
-    text-shadow:0 0 30px rgba(255,217,59,.8);
-    animation:pop .8s cubic-bezier(.2,1.4,.4,1) both;
+
+  /* Lichtstrahl */
+  #beam {
+    position:absolute; left:50%; bottom:20%;
+    width:min(70vw, 320px); height:60vh;
+    transform:translateX(-50%) scaleY(0);
+    transform-origin:bottom center;
+    background:linear-gradient(to top,
+      rgba(255,217,59,.85) 0%,
+      rgba(255,217,59,.35) 40%,
+      rgba(255,217,59,0) 100%);
+    clip-path:polygon(38% 100%, 62% 100%, 100% 0, 0 0);
+    filter:blur(6px);
+    opacity:0;
+    z-index:31;
   }
-  #found p { color:#fff; font-size:clamp(1rem,4.4vw,1.3rem); margin-top:16px; max-width:90%; line-height:1.5; }
+  #found.open #beam {
+    animation:beamUp 1.4s .5s cubic-bezier(.2,.8,.3,1) forwards;
+  }
+  @keyframes beamUp {
+    from { transform:translateX(-50%) scaleY(0); opacity:0; }
+    to   { transform:translateX(-50%) scaleY(1); opacity:1; }
+  }
+
+  /* Truhe */
+  #chest {
+    position:absolute; left:50%; bottom:14%;
+    transform:translateX(-50%);
+    width:min(52vw, 220px);
+    z-index:33;
+    animation:pop .7s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  #chest svg { width:100%; height:auto; display:block;
+    filter:drop-shadow(0 8px 24px rgba(0,0,0,.7)); }
+
+  /* Deckel klappt auf */
+  #chest-lid {
+    transform-origin:100px 88px;
+    transition:transform 1s cubic-bezier(.4,1.6,.5,1);
+  }
+  #found.open #chest-lid {
+    transform:rotate(-108deg) translateY(-6px);
+  }
+
+  /* Der Schatz */
+  #treasure {
+    position:absolute; left:50%; top:16%;
+    transform:translateX(-50%);
+    width:90%; max-width:520px;
+    z-index:34; opacity:0;
+  }
+  #found.open #treasure {
+    animation:treasureRise 1.2s 1.1s cubic-bezier(.2,1.2,.4,1) forwards;
+  }
+  @keyframes treasureRise {
+    from { opacity:0; transform:translateX(-50%) translateY(40px) scale(.8); }
+    to   { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+  }
+  #treasure h1 {
+    color:#ffd93b; font-size:clamp(1.7rem,8.5vw,3.2rem);
+    text-shadow:0 0 30px rgba(255,217,59,.9), 0 0 60px rgba(255,217,59,.4);
+    letter-spacing:1px;
+  }
+  .treasure-text {
+    color:#fff; font-size:clamp(1rem,4.2vw,1.25rem);
+    margin-top:14px; line-height:1.55;
+    text-shadow:0 2px 10px rgba(0,0,0,.9);
+  }
+  .treasure-img {
+    max-width:100%; max-height:34vh; margin-top:16px;
+    border-radius:10px; border:3px solid #f0c14b;
+    box-shadow:0 0 30px rgba(255,217,59,.5);
+  }
 </style>
 </head>
 <body>
@@ -319,8 +387,37 @@
 
   <!-- ===== FINALE ===== -->
   <div id="found">
-    <h1>🏆 DAS ONE PIECE!</h1>
-    <p>Gusti, du hast es geschafft — ein ganzes Jahr Abenteuer und du bist angekommen. Der Schatz gehört dir. 🏴‍☠️</p>
+    <!-- Lichtstrahl aus der Truhe -->
+    <div id="beam"></div>
+
+    <!-- Truhe -->
+    <div id="chest">
+      <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+        <!-- Deckel (klappt auf) -->
+        <g id="chest-lid">
+          <path d="M20 78 Q100 18 180 78 L180 88 L20 88 Z" fill="#a0621f" stroke="#5e3410" stroke-width="3"/>
+          <path d="M20 78 Q100 18 180 78" fill="none" stroke="#c8752f" stroke-width="6"/>
+          <rect x="92" y="60" width="16" height="28" rx="3" fill="#f0c14b" stroke="#8a6a20" stroke-width="2"/>
+        </g>
+        <!-- Korpus -->
+        <rect x="20" y="88" width="160" height="60" rx="6" fill="#a0621f" stroke="#5e3410" stroke-width="3"/>
+        <rect x="20" y="98" width="160" height="8" fill="#c8752f"/>
+        <rect x="20" y="128" width="160" height="8" fill="#c8752f"/>
+        <rect x="88" y="96" width="24" height="30" rx="3" fill="#f0c14b" stroke="#8a6a20" stroke-width="2"/>
+        <circle cx="100" cy="112" r="4" fill="#5e3410"/>
+      </svg>
+    </div>
+
+    <!-- ▼▼▼ HIER SPÄTER DEN SCHATZ EINSETZEN ▼▼▼
+         Beispiele:
+           - Text:  <p class="treasure-text">Deine Nachricht</p>
+           - Bild:  <img class="treasure-img" src="crew.png">
+         Alles zwischen den Pfeilen kann ersetzt werden.        -->
+    <div id="treasure">
+      <h1>DAS ONE PIECE!</h1>
+      <p class="treasure-text">Gusti, du hast es geschafft — ein ganzes Jahr, vier Inseln, und du bist angekommen. 🏴‍☠️</p>
+    </div>
+    <!-- ▲▲▲ ------------------------------------------- ▲▲▲ -->
   </div>
 
 </div>
@@ -340,10 +437,10 @@ const END_DATE   = new Date(2027, 6, 25);  // 25.07.2027
    Reihenfolge: von unten (Start) nach oben (Ziel)
 */
 const ISLANDS = [
-  { name:"BURNING MAN", icon:"fire",     arrive:new Date(2026,7,30),  leave:new Date(2026,8,7)  },
-  { name:"???",         icon:"question", arrive:new Date(2026,10,10), leave:new Date(2026,10,20) },
-  { name:"BRAZIL",      icon:"flag-br",  arrive:new Date(2027,1,5),   leave:new Date(2027,1,25) },
-  { name:"???",         icon:"question", arrive:new Date(2027,4,10),  leave:new Date(2027,4,20) }
+  { name:"BURNING MAN",  icon:"fire",     arrive:new Date(2026,7,30),  leave:new Date(2026,8,7)  },
+  { name:"CRAZY GIG",    icon:"vinyl",    arrive:new Date(2026,10,10), leave:new Date(2026,10,20) },
+  { name:"BRAZIL",       icon:"flag-br",  arrive:new Date(2027,1,5),   leave:new Date(2027,1,25) },
+  { name:"FIRST TRACK",  icon:"wave",     arrive:new Date(2027,4,10),  leave:new Date(2027,4,20) }
 ];
 /* ======================================= */
 
@@ -583,6 +680,27 @@ function iconSvg(type){
             <path d="M0 -6 L9 0 L0 6 L-9 0 Z" fill="#ffdf00"/>
             <circle cx="0" cy="0" r="3.6" fill="#002776"/>`;
   }
+  if(type === "vinyl"){
+    return `<circle cx="0" cy="0" r="12" fill="#1a1a1a" stroke="#000" stroke-width="1"/>
+            <circle cx="0" cy="0" r="8.5" fill="none" stroke="#3d3d3d" stroke-width="1"/>
+            <circle cx="0" cy="0" r="6" fill="none" stroke="#3d3d3d" stroke-width="1"/>
+            <circle cx="0" cy="0" r="3.5" fill="#c0392b"/>
+            <circle cx="0" cy="0" r="1" fill="#f2e2bd"/>
+            <path d="M11 -13 L4 -3" stroke="#8a6a35" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="11.5" cy="-13.5" r="2" fill="#8a6a35"/>`;
+  }
+  if(type === "wave"){
+    return `<g stroke="#c0392b" stroke-width="2.6" stroke-linecap="round">
+              <path d="M-11 0 L-11 0"/>
+              <path d="M-11 -3 L-11 3"/>
+              <path d="M-7 -7 L-7 7"/>
+              <path d="M-3.5 -11 L-3.5 11"/>
+              <path d="M0 -5 L0 5"/>
+              <path d="M3.5 -12 L3.5 12"/>
+              <path d="M7 -6 L7 6"/>
+              <path d="M11 -3 L11 3"/>
+            </g>`;
+  }
   return `<text x="0" y="6" text-anchor="middle" font-size="20" font-weight="bold" fill="#8a6a35">?</text>`;
 }
 
@@ -681,7 +799,9 @@ function showMap(){
 
   if(p >= 1){
     setTimeout(()=>{
-      document.getElementById('found').style.display='flex';
+      const foundEl = document.getElementById('found');
+      foundEl.style.display='flex';
+      requestAnimationFrame(()=> foundEl.classList.add('open'));
       burstConfetti();
     }, 2500);
   }
