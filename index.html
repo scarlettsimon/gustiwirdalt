@@ -130,7 +130,7 @@
   #ship-face img { width:100%; display:block; }
   #ship-hat {
     position:absolute; left:56%; top:2%;
-    transform:translate(-50%,-22%);
+    transform:translate(-50%,-8%);
     width:66%; z-index:3; pointer-events:none;
   }
   #ship-hat svg { width:100%; height:auto; display:block; }
@@ -320,7 +320,7 @@
 /* ============ HIER ANPASSEN ============ */
 const NAME       = "Gusti";
 const MESSAGE    = "Alles Gute zum Geburtstag, König der Piraten! 🏴‍☠️";
-const START_DATE = new Date(2026, 5, 9);  // 25.07.2026 (Monat 6 = Juli)
+const START_DATE = new Date(2026, 6, 25);  // 25.07.2026 (Monat 6 = Juli)
 const END_DATE   = new Date(2027, 6, 25);  // 25.07.2027
 
 /* ---- INSELN / ETAPPEN ----
@@ -337,6 +337,19 @@ const ISLANDS = [
   { name:"???",         icon:"question", arrive:new Date(2027,4,10),  leave:new Date(2027,4,20) }
 ];
 /* ======================================= */
+
+/* ---- Aktuelles Datum (mit Test-Möglichkeit) ----
+   Normal: echtes Datum von heute.
+   Zum Testen: ?date=2026-09-05 an die URL hängen.
+   Beispiel: .../gustiwirdalt/?date=2026-09-05                */
+function today(){
+  const param = new URLSearchParams(location.search).get('date');
+  if(param){
+    const d = new Date(param);
+    if(!isNaN(d)) return d;
+  }
+  return new Date();
+}
 
 document.getElementById('c-name').textContent = NAME;
 document.getElementById('c-msg').textContent  = MESSAGE;
@@ -521,7 +534,7 @@ function startPickup(){
 
 /* ---------- Fortschritt aus echtem Datum ---------- */
 function getProgress(){
-  const now = new Date();
+  const now = today();
   const total = END_DATE - START_DATE;
   const elapsed = now - START_DATE;
   let p = elapsed / total;
@@ -540,7 +553,7 @@ function dateToProgress(d){
    Rückgabe: {index, state}
    state: "at" = liegt gerade dort, "next" = nächste anzustreuernde  */
 function currentIslandInfo(){
-  const now = new Date();
+  const now = today();
   for(let i=0; i<ISLANDS.length; i++){
     const is = ISLANDS[i];
     if(now >= is.arrive && now <= is.leave) return {index:i, state:"at"};
@@ -583,7 +596,7 @@ function drawIslands(){
     const iy = pt.y;
 
     const active   = (info.state === "at" && i === info.index);
-    const passed   = (new Date() > is.leave);
+    const passed   = (today() > is.leave);
     // Zukünftige Inseln: sichtbar, aber ohne Name/Symbol
     const revealed = (info.state === "done") || (i <= info.index);
 
@@ -636,7 +649,7 @@ function showMap(){
   map.style.display='block';
   requestAnimationFrame(()=> map.classList.add('show'));
 
-  const p = getProgress();
+  const p = shipProgress();
 
   // erst nach dem Einblenden positionieren (Layout muss stehen)
   setTimeout(()=>{
