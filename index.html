@@ -17,14 +17,9 @@
     width:min(48vw, 230px);
     z-index:2;
     text-align:center;
+    transition:transform 1.2s cubic-bezier(.4,0,.2,1), opacity .6s;
   }
-  #person-img {
-    width:100%;
-    height:auto;
-    background:none;
-    object-fit:contain;
-    display:block;
-  }
+  #person-img { width:100%; height:auto; background:none; object-fit:contain; display:block; }
   #head-target { position:absolute; left:50%; top:14%; width:44%; height:20%; transform:translateX(-50%); }
 
   #hat {
@@ -54,7 +49,8 @@
     position:absolute; inset:0; z-index:10;
     display:none; flex-direction:column;
     align-items:center; justify-content:flex-start;
-    padding-top:10vh; text-align:center; pointer-events:none;
+    padding-top:8vh; text-align:center; pointer-events:none;
+    transition:opacity .8s;
   }
   #celebrate h1 {
     color:#ffd93b; font-size:clamp(2rem, 11vw, 4.5rem);
@@ -75,6 +71,17 @@
 
   .confetti { position:absolute; top:-20px; width:12px; height:18px; z-index:9; will-change:transform; }
 
+  /* ---------- ABHOL-SCHIFF (Übergang, auf Schwarz) ---------- */
+  #pickup {
+    position:absolute; left:50%; z-index:8;
+    width:min(46vw, 200px);
+    transform:translate(-50%,0);
+    top:120vh;
+    display:none;
+    filter:drop-shadow(0 8px 20px rgba(0,0,0,.7));
+  }
+  #pickup svg { width:100%; height:auto; display:block; }
+
   /* ---------- PHASE 3: Schatzkarte ---------- */
   #map {
     position:absolute; inset:0; z-index:20;
@@ -82,7 +89,7 @@
     background:
       radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.05), transparent 60%),
       linear-gradient(160deg, #f2e2bd 0%, #e8d3a3 45%, #dcc189 100%);
-    transition:opacity 1s ease;
+    transition:opacity 1.2s ease;
     overflow:hidden;
   }
   #map.show { opacity:1; }
@@ -92,24 +99,26 @@
   }
 
   #map-title {
-    position:absolute; top:3%; left:50%; transform:translateX(-50%);
-    font-size:clamp(1.1rem, 5vw, 1.8rem); font-weight:bold;
+    position:absolute; top:2.5%; left:50%; transform:translateX(-50%);
+    font-size:clamp(1.05rem, 4.8vw, 1.7rem); font-weight:bold;
     color:#5b3a12; letter-spacing:1px; text-align:center; width:90%;
     z-index:26;
   }
   #map-sub {
-    position:absolute; top:calc(3% + 2.2em); left:50%; transform:translateX(-50%);
-    font-size:clamp(.85rem, 3.6vw, 1.05rem);
+    position:absolute; top:calc(2.5% + 2em); left:50%; transform:translateX(-50%);
+    font-size:clamp(.8rem, 3.4vw, 1rem);
     color:#7a5423; text-align:center; width:90%; z-index:26;
   }
 
-  #map-svg { position:absolute; inset:0; width:100%; height:100%; z-index:21; }
+  /* Karte oben, Anzeige unten – klar getrennt */
+  #map-svg {
+    position:absolute; left:0; top:9%; width:100%; height:69%;
+    z-index:21;
+  }
 
-  /* Schiff mit Gusti */
   #ship {
     position:absolute; z-index:23;
-    width:min(30vw, 130px);
-    margin-left:0; margin-top:0;
+    width:min(28vw, 120px);
     animation:bob 3s ease-in-out infinite;
     pointer-events:none;
   }
@@ -125,18 +134,22 @@
   #ship-face img { width:100%; display:block; }
   #ship > svg { width:100%; height:auto; display:block; position:relative; z-index:1; }
 
-  /* Fortschritts-Anzeige */
+  /* Anzeige-Bereich unten – eigener Streifen, Schiff kann nicht drüber */
   #progress-box {
-    position:absolute; bottom:5%; left:50%; transform:translateX(-50%);
-    z-index:26; text-align:center; width:86%;
+    position:absolute; bottom:0; left:0; width:100%;
+    height:20%;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    z-index:26; text-align:center;
+    background:linear-gradient(to top, rgba(220,193,137,.98) 60%, rgba(220,193,137,0));
   }
   #pct {
-    font-size:clamp(2rem, 10vw, 3.2rem); font-weight:bold;
+    font-size:clamp(2rem, 9vw, 3rem); font-weight:bold;
     color:#5b3a12; line-height:1;
   }
   #pct-label { font-size:clamp(.8rem,3.4vw,1rem); color:#7a5423; margin-top:4px; }
   #bar {
-    margin:10px auto 0; width:100%; max-width:340px; height:10px;
+    margin:10px auto 0; width:80%; max-width:340px; height:10px;
     background:rgba(90,60,20,.18); border-radius:99px; overflow:hidden;
     border:1px solid rgba(90,60,20,.3);
   }
@@ -145,7 +158,6 @@
     background:linear-gradient(90deg,#c0392b,#e67e22,#ffd93b);
     border-radius:99px; transition:width 1.6s ease;
   }
-  #days { font-size:clamp(.8rem,3.4vw,1rem); color:#7a5423; margin-top:8px; }
 
   /* Finale */
   #found {
@@ -191,52 +203,70 @@
     <div class="msg" id="c-msg"></div>
   </div>
 
+  <!-- ===== ABHOL-SCHIFF ===== -->
+  <div id="pickup">
+    <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+      <rect x="96" y="20" width="6" height="70" fill="#7b4a1e"/>
+      <path d="M102 26 Q140 45 102 64 Z" fill="#fdfaf2" stroke="#d8cdb4" stroke-width="1.5"/>
+      <path d="M98 30 Q60 48 98 66 Z" fill="#fdfaf2" stroke="#d8cdb4" stroke-width="1.5"/>
+      <rect x="102" y="12" width="26" height="16" fill="#1a1a1a"/>
+      <circle cx="112" cy="20" r="4" fill="#fff"/>
+      <path d="M107 25 L119 15 M107 15 L119 25" stroke="#fff" stroke-width="1.6"/>
+      <path d="M30 92 L170 92 L150 128 Q100 138 50 128 Z" fill="#c8752f" stroke="#8a4a18" stroke-width="2"/>
+      <path d="M30 92 L170 92 L166 100 L34 100 Z" fill="#e0913f"/>
+      <circle cx="176" cy="86" r="11" fill="#f2e2bd" stroke="#8a4a18" stroke-width="2"/>
+      <circle cx="180" cy="84" r="1.8" fill="#333"/>
+      <path d="M168 80 q-6 -6 -2 -10" stroke="#8a4a18" stroke-width="2.5" fill="none"/>
+      <circle cx="70" cy="108" r="5" fill="#f7d772" stroke="#8a4a18" stroke-width="1.5"/>
+      <circle cx="100" cy="110" r="5" fill="#f7d772" stroke="#8a4a18" stroke-width="1.5"/>
+      <circle cx="130" cy="108" r="5" fill="#f7d772" stroke="#8a4a18" stroke-width="1.5"/>
+    </svg>
+  </div>
+
   <!-- ===== PHASE 3: Schatzkarte ===== -->
   <div id="map">
     <div id="map-title">🏴‍☠️ Die Reise zum One Piece</div>
-    <div id="map-sub">Kurs auf den Schatz · Ankunft 25.07.2027</div>
+    <div id="map-sub">Kurs auf den Schatz · Ankunft: ???</div>
 
-    <svg id="map-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+    <svg id="map-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid meet">
       <g stroke="#b99a5f" stroke-width="1" opacity=".35" fill="none">
-        <path d="M20 200 q20 -8 40 0 t40 0"/>
-        <path d="M300 260 q20 -8 40 0 t40 0"/>
-        <path d="M40 640 q20 -8 40 0 t40 0"/>
-        <path d="M280 700 q20 -8 40 0 t40 0"/>
+        <path d="M20 220 q20 -8 40 0 t40 0"/>
+        <path d="M300 280 q20 -8 40 0 t40 0"/>
+        <path d="M40 620 q20 -8 40 0 t40 0"/>
+        <path d="M280 680 q20 -8 40 0 t40 0"/>
       </g>
 
-      <g transform="translate(340,180)" opacity=".5">
-        <circle r="26" fill="none" stroke="#8a6a35" stroke-width="2"/>
-        <path d="M0 -22 L5 0 L0 22 L-5 0 Z" fill="#c0392b"/>
-        <path d="M-22 0 L0 -5 L22 0 L0 5 Z" fill="#8a6a35"/>
-        <text x="0" y="-32" text-anchor="middle" font-size="11" fill="#8a6a35" font-weight="bold">N</text>
+      <g transform="translate(345,190)" opacity=".5">
+        <circle r="24" fill="none" stroke="#8a6a35" stroke-width="2"/>
+        <path d="M0 -20 L5 0 L0 20 L-5 0 Z" fill="#c0392b"/>
+        <path d="M-20 0 L0 -5 L20 0 L0 5 Z" fill="#8a6a35"/>
+        <text x="0" y="-29" text-anchor="middle" font-size="11" fill="#8a6a35" font-weight="bold">N</text>
       </g>
 
       <g fill="#c9a86a" stroke="#8a6a35" stroke-width="1.5" opacity=".85">
-        <ellipse cx="90"  cy="560" rx="26" ry="16"/>
-        <ellipse cx="310" cy="430" rx="22" ry="14"/>
-        <ellipse cx="80"  cy="320" rx="20" ry="13"/>
+        <ellipse cx="85"  cy="560" rx="26" ry="16"/>
+        <ellipse cx="315" cy="440" rx="22" ry="14"/>
+        <ellipse cx="75"  cy="330" rx="20" ry="13"/>
         <ellipse cx="330" cy="620" rx="18" ry="11"/>
       </g>
       <g fill="#7a9e4a" opacity=".8">
-        <circle cx="88" cy="556" r="6"/>
-        <circle cx="308" cy="427" r="5"/>
-        <circle cx="79" cy="317" r="4.5"/>
+        <circle cx="83" cy="556" r="6"/>
+        <circle cx="313" cy="437" r="5"/>
+        <circle cx="74" cy="327" r="4.5"/>
       </g>
 
-      <!-- Zurückgelegter Weg (wird per JS gefüllt) -->
       <path id="route-done"
             d="M200 700 C 120 640, 300 560, 200 480 S 90 380, 220 300 S 320 220, 200 150"
             fill="none" stroke="#c0392b" stroke-width="5"
             stroke-linecap="round" opacity=".9"/>
 
-      <!-- Gestrichelter Weg -->
       <path id="route"
             d="M200 700 C 120 640, 300 560, 200 480 S 90 380, 220 300 S 320 220, 200 150"
             fill="none" stroke="#8a3b12" stroke-width="4"
             stroke-dasharray="12 12" stroke-linecap="round" opacity=".85"/>
 
       <circle cx="200" cy="700" r="7" fill="#5b3a12"/>
-      <text x="200" y="726" text-anchor="middle" font-size="14" fill="#5b3a12" font-weight="bold">START</text>
+      <text x="200" y="726" text-anchor="middle" font-size="15" fill="#5b3a12" font-weight="bold">START</text>
 
       <g transform="translate(200,150)">
         <circle r="30" fill="none" stroke="#c0392b" stroke-width="2" opacity=".4"/>
@@ -245,7 +275,6 @@
       </g>
     </svg>
 
-    <!-- Schiff (Merry) mit Gusti -->
     <div id="ship">
       <div id="ship-face"><img src="Gusti.PNG" alt="Gusti"></div>
       <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
@@ -270,7 +299,6 @@
       <div id="pct">0%</div>
       <div id="pct-label">der Reise geschafft</div>
       <div id="bar"><div id="bar-fill"></div></div>
-      <div id="days"></div>
     </div>
   </div>
 
@@ -293,8 +321,10 @@ const END_DATE   = new Date(2027, 6, 25);  // 25.07.2027
 document.getElementById('c-name').textContent = NAME;
 document.getElementById('c-msg').textContent  = MESSAGE;
 
-const stage = document.getElementById('stage');
-const hat   = document.getElementById('hat');
+const stage  = document.getElementById('stage');
+const hat    = document.getElementById('hat');
+const person = document.getElementById('person');
+const pickup = document.getElementById('pickup');
 let done = false;
 
 /* ---------- Hut zufällig platzieren ---------- */
@@ -330,7 +360,7 @@ function move(e){
   hat.style.top  = (p.y - offY) + 'px';
   e.preventDefault();
 }
-function end(){
+function endDrag(){
   if(!dragging) return;
   dragging=false; hat.classList.remove('grabbing');
   checkHit();
@@ -341,10 +371,10 @@ function point(e){
 }
 hat.addEventListener('mousedown', start);
 window.addEventListener('mousemove', move);
-window.addEventListener('mouseup', end);
+window.addEventListener('mouseup', endDrag);
 hat.addEventListener('touchstart', start, {passive:false});
 window.addEventListener('touchmove', move, {passive:false});
-window.addEventListener('touchend', end);
+window.addEventListener('touchend', endDrag);
 
 /* ---------- Treffer ---------- */
 function checkHit(){
@@ -357,17 +387,29 @@ function checkHit(){
     snapAndCelebrate(target);
   }
 }
+
+let hatOffsetFromPerson = {x:0, y:0};
+
 function snapAndCelebrate(target){
   done = true;
   hat.style.transition='left .2s, top .2s';
-  hat.style.left = (target.left + target.width/2 - hat.offsetWidth/2 + hat.offsetWidth*0.12) + 'px';
-  hat.style.top  = (target.top - hat.offsetHeight*0.35) + 'px';
+  const hatLeft = target.left + target.width/2 - hat.offsetWidth/2 + hat.offsetWidth*0.12;
+  const hatTop  = target.top - hat.offsetHeight*0.35;
+  hat.style.left = hatLeft + 'px';
+  hat.style.top  = hatTop + 'px';
   document.getElementById('hint').style.display='none';
+
+  // Hut-Position relativ zur Person merken (damit er beim Wegfahren mitgeht)
+  const pr = person.getBoundingClientRect();
+  hatOffsetFromPerson = { x: hatLeft - pr.left, y: hatTop - pr.top };
+
   setTimeout(()=>{
     document.getElementById('celebrate').style.display='flex';
     burstConfetti();
   }, 220);
-  setTimeout(showMap, 4500);
+
+  // Übergang: Boot holt ihn ab
+  setTimeout(startPickup, 3800);
 }
 
 /* ---------- Konfetti ---------- */
@@ -391,6 +433,54 @@ function spawnConfetto(){
   setTimeout(()=>c.remove(), dur*1000);
 }
 
+/* ---------- ÜBERGANG: Boot fährt hoch, lädt ein, fährt runter ---------- */
+function startPickup(){
+  const celebrate = document.getElementById('celebrate');
+  const pr = person.getBoundingClientRect();
+
+  // Boot startet unterhalb des Bildschirms, mittig
+  pickup.style.display = 'block';
+  pickup.style.top = '120vh';
+
+  // Zielhöhe: knapp unter der Person (so, dass sie "einsteigen" kann)
+  const dockTop = pr.bottom - pickup.offsetHeight * 0.45;
+
+  // 1) Boot fährt hoch
+  pickup.style.transition = 'top 1.8s cubic-bezier(.3,0,.3,1)';
+  requestAnimationFrame(()=>{ pickup.style.top = dockTop + 'px'; });
+
+  // 2) Person "steigt ein" (rutscht leicht runter, wird kleiner)
+  setTimeout(()=>{
+    person.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)';
+    person.style.transform = 'translate(-50%,-50%) translateY(28px) scale(.82)';
+    // Hut mitbewegen
+    hat.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)';
+    hat.style.transform = 'translateY(28px) scale(.82)';
+    hat.style.transformOrigin = 'center bottom';
+    celebrate.style.opacity = '0';
+  }, 1900);
+
+  // 3) Boot + Person fahren zusammen nach unten raus
+  setTimeout(()=>{
+    const dist = window.innerHeight * 1.2;
+    pickup.style.transition = 'top 1.6s cubic-bezier(.5,0,.7,1)';
+    pickup.style.top = (dockTop + dist) + 'px';
+
+    person.style.transition = 'transform 1.6s cubic-bezier(.5,0,.7,1), opacity .4s 1.2s';
+    person.style.transform = `translate(-50%,-50%) translateY(${28 + dist}px) scale(.82)`;
+    person.style.opacity = '0';
+
+    hat.style.transition = 'transform 1.6s cubic-bezier(.5,0,.7,1), opacity .4s 1.2s';
+    hat.style.transform = `translateY(${28 + dist}px) scale(.82)`;
+    hat.style.opacity = '0';
+
+    celebrate.style.display = 'none';
+  }, 3000);
+
+  // 4) Karte einblenden
+  setTimeout(showMap, 4500);
+}
+
 /* ---------- Fortschritt aus echtem Datum ---------- */
 function getProgress(){
   const now = new Date();
@@ -401,23 +491,25 @@ function getProgress(){
   if(p > 1) p = 1;
   return p;
 }
-function daysLeft(){
-  const ms = END_DATE - new Date();
-  return Math.max(0, Math.ceil(ms / 86400000));
-}
 
-/* ---------- Schatzkarte anzeigen ---------- */
+/* ---------- Schatzkarte ---------- */
 function showMap(){
   const map = document.getElementById('map');
+  person.style.display = 'none';
+  hat.style.display    = 'none';
+  pickup.style.display = 'none';
   document.getElementById('celebrate').style.display='none';
-  document.getElementById('person').style.display='none';
-  hat.style.display='none';
+
   map.style.display='block';
   requestAnimationFrame(()=> map.classList.add('show'));
 
   const p = getProgress();
-  drawRoute(p);
-  positionShip(p);
+
+  // erst nach dem Einblenden positionieren (Layout muss stehen)
+  setTimeout(()=>{
+    drawRoute(p);
+    positionShip(p);
+  }, 300);
 
   const pctEl = document.getElementById('pct');
   const target = Math.round(p*100);
@@ -431,27 +523,24 @@ function showMap(){
 
   document.getElementById('bar-fill').style.width = (p*100) + '%';
 
-  const dl = daysLeft();
-  document.getElementById('days').textContent =
-    dl > 0 ? `Noch ${dl} Tage bis zum One Piece` : 'Ziel erreicht!';
-
   if(p >= 1){
     setTimeout(()=>{
       document.getElementById('found').style.display='flex';
       burstConfetti();
-    }, 2200);
+    }, 2500);
   }
 }
 
 /* ---------- Zurückgelegten Weg rot einfärben ---------- */
 function drawRoute(p){
-  const done = document.getElementById('route-done');
-  const len  = done.getTotalLength();
-  done.style.strokeDasharray  = len;
-  done.style.strokeDashoffset = len;
-  done.getBoundingClientRect(); // reflow
-  done.style.transition = 'stroke-dashoffset 2s ease';
-  done.style.strokeDashoffset = len * (1 - p);
+  const el  = document.getElementById('route-done');
+  const len = el.getTotalLength();
+  el.style.transition = 'none';
+  el.style.strokeDasharray  = len;
+  el.style.strokeDashoffset = len;
+  el.getBoundingClientRect();
+  el.style.transition = 'stroke-dashoffset 2s ease';
+  el.style.strokeDashoffset = len * (1 - p);
 }
 
 /* ---------- Schiff auf den Pfad setzen ---------- */
