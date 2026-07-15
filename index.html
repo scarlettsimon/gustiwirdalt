@@ -112,13 +112,21 @@
 
   /* Karte oben, Anzeige unten – klar getrennt */
   #map-svg {
-    position:absolute; left:0; top:7%; width:100%; height:75%;
+    position:absolute;
+    top:7%; height:75%;
+    width:100%;
+    left:50%; transform:translateX(-50%);
     z-index:21;
+  }
+  /* Auf breiten Bildschirmen (Desktop/Querformat): Karte hochformatig
+     in die Mitte statt über die volle Breite -> kein extremer Zoom */
+  @media (min-aspect-ratio: 3/4) {
+    #map-svg { width:min(100%, 37.5vh); }
   }
 
   #ship {
     position:absolute; z-index:23;
-    width:min(28vw, 120px);
+    width:min(28vw, 11vh, 120px);
     animation:bob 3s ease-in-out infinite;
     pointer-events:none;
   }
@@ -140,6 +148,7 @@
   #progress-box {
     position:absolute; bottom:0; left:0; width:100%;
     height:22%;
+    min-height:130px;
     padding-bottom:9vh;
     display:flex; flex-direction:column;
     align-items:center; justify-content:flex-end;
@@ -152,7 +161,7 @@
   }
   #pct-label { font-size:clamp(.8rem,3.4vw,1rem); color:#7a5423; margin-top:4px; }
   #bar {
-    margin:10px auto 0; width:80%; max-width:340px; height:10px;
+    margin:10px auto 0; width:min(80%, 340px); height:10px;
     background:rgba(90,60,20,.18); border-radius:99px; overflow:hidden;
     border:1px solid rgba(90,60,20,.3);
   }
