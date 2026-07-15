@@ -112,7 +112,7 @@
 
   /* Karte oben, Anzeige unten – klar getrennt */
   #map-svg {
-    position:absolute; left:0; top:7%; width:100%; height:81%;
+    position:absolute; left:0; top:7%; width:100%; height:75%;
     z-index:21;
   }
 
@@ -137,12 +137,12 @@
   /* Anzeige-Bereich unten – eigener Streifen, Schiff kann nicht drüber */
   #progress-box {
     position:absolute; bottom:0; left:0; width:100%;
-    height:16%;
-    padding-bottom:4vh;
+    height:22%;
+    padding-bottom:9vh;
     display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
+    align-items:center; justify-content:flex-end;
     z-index:26; text-align:center;
-    background:linear-gradient(to top, rgba(220,193,137,.98) 55%, rgba(220,193,137,0));
+    background:linear-gradient(to top, rgba(220,193,137,.98) 50%, rgba(220,193,137,0));
   }
   #pct {
     font-size:clamp(2rem, 9vw, 3rem); font-weight:bold;
@@ -229,7 +229,7 @@
     <div id="map-title">🏴‍☠️ Die Reise zum One Piece</div>
     <div id="map-sub">Kurs auf den Schatz · Ankunft: ???</div>
 
-    <svg id="map-svg" viewBox="0 0 400 800" preserveAspectRatio="none">
+    <svg id="map-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
       <g stroke="#b99a5f" stroke-width="1" opacity=".35" fill="none">
         <path d="M20 220 q20 -8 40 0 t40 0"/>
         <path d="M300 280 q20 -8 40 0 t40 0"/>
@@ -434,38 +434,56 @@ function spawnConfetto(){
   setTimeout(()=>c.remove(), dur*1000);
 }
 
-/* ---------- ÜBERGANG: Boot fährt hoch, lädt ein, fährt runter ---------- */
+/* ---------- ÜBERGANG: Boot fährt in Kurven ran, lädt ein, fährt runter ---------- */
 function startPickup(){
   const celebrate = document.getElementById('celebrate');
   const pr = person.getBoundingClientRect();
+  const W  = window.innerWidth;
+  const H  = window.innerHeight;
 
-  // Boot startet unterhalb des Bildschirms, mittig
-  pickup.style.display = 'block';
-  pickup.style.top = '120vh';
-
-  // Zielhöhe: knapp unter der Person (so, dass sie "einsteigen" kann)
   const dockTop = pr.bottom - pickup.offsetHeight * 0.45;
 
-  // 1) Boot fährt hoch
-  pickup.style.transition = 'top 1.8s cubic-bezier(.3,0,.3,1)';
-  requestAnimationFrame(()=>{ pickup.style.top = dockTop + 'px'; });
+  pickup.style.display = 'block';
+  pickup.style.left = '50%';
+  pickup.style.top  = '115vh';
+  pickup.style.transition = 'none';
+  pickup.style.transform = 'translate(-50%,0)';
 
-  // 2) Person "steigt ein" (rutscht leicht runter, wird kleiner)
+  // Bewegung per Keyframes: rein, zwei Kurven, dann andocken
+  const anim = pickup.animate([
+    // von unten rechts reinfahren
+    { top: H*1.15 + 'px', transform:'translate(-50%,0) translateX(' + (W*0.32) + 'px) rotate(6deg)' },
+    // erste Kurve: nach links schwingen
+    { top: H*0.78 + 'px', transform:'translate(-50%,0) translateX(' + (-W*0.30) + 'px) rotate(-8deg)', offset:.28 },
+    // zweite Kurve: zurück nach rechts
+    { top: H*0.62 + 'px', transform:'translate(-50%,0) translateX(' + (W*0.26) + 'px) rotate(7deg)',  offset:.56 },
+    // einschwenken zur Mitte
+    { top: (dockTop + 40) + 'px', transform:'translate(-50%,0) translateX(' + (-W*0.08) + 'px) rotate(-3deg)', offset:.82 },
+    // andocken
+    { top: dockTop + 'px', transform:'translate(-50%,0) translateX(0) rotate(0deg)' }
+  ], {
+    duration: 5200,
+    easing: 'ease-in-out',
+    fill: 'forwards'
+  });
+
+  // Person steigt ein, sobald das Boot da ist
   setTimeout(()=>{
     person.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)';
     person.style.transform = 'translate(-50%,-50%) translateY(28px) scale(.82)';
-    // Hut mitbewegen
     hat.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)';
     hat.style.transform = 'translateY(28px) scale(.82)';
     hat.style.transformOrigin = 'center bottom';
     celebrate.style.opacity = '0';
-  }, 1900);
+  }, 5300);
 
-  // 3) Boot + Person fahren zusammen nach unten raus
+  // Boot + Person fahren zusammen nach unten raus
   setTimeout(()=>{
-    const dist = window.innerHeight * 1.2;
-    pickup.style.transition = 'top 1.6s cubic-bezier(.5,0,.7,1)';
-    pickup.style.top = (dockTop + dist) + 'px';
+    const dist = H * 1.2;
+    pickup.animate([
+      { top: dockTop + 'px', transform:'translate(-50%,0) rotate(0deg)' },
+      { top: (dockTop + dist) + 'px', transform:'translate(-50%,0) rotate(2deg)' }
+    ], { duration:1600, easing:'cubic-bezier(.5,0,.7,1)', fill:'forwards' });
 
     person.style.transition = 'transform 1.6s cubic-bezier(.5,0,.7,1), opacity .4s 1.2s';
     person.style.transform = `translate(-50%,-50%) translateY(${28 + dist}px) scale(.82)`;
@@ -476,10 +494,10 @@ function startPickup(){
     hat.style.opacity = '0';
 
     celebrate.style.display = 'none';
-  }, 3000);
+  }, 6400);
 
-  // 4) Karte einblenden
-  setTimeout(showMap, 4500);
+  // Karte einblenden
+  setTimeout(showMap, 7900);
 }
 
 /* ---------- Fortschritt aus echtem Datum ---------- */
