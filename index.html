@@ -112,7 +112,7 @@
 
   /* Karte oben, Anzeige unten – klar getrennt */
   #map-svg {
-    position:absolute; left:0; top:9%; width:100%; height:69%;
+    position:absolute; left:0; top:7%; width:100%; height:81%;
     z-index:21;
   }
 
@@ -137,11 +137,12 @@
   /* Anzeige-Bereich unten – eigener Streifen, Schiff kann nicht drüber */
   #progress-box {
     position:absolute; bottom:0; left:0; width:100%;
-    height:20%;
+    height:16%;
+    padding-bottom:4vh;
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
     z-index:26; text-align:center;
-    background:linear-gradient(to top, rgba(220,193,137,.98) 60%, rgba(220,193,137,0));
+    background:linear-gradient(to top, rgba(220,193,137,.98) 55%, rgba(220,193,137,0));
   }
   #pct {
     font-size:clamp(2rem, 9vw, 3rem); font-weight:bold;
@@ -228,7 +229,7 @@
     <div id="map-title">🏴‍☠️ Die Reise zum One Piece</div>
     <div id="map-sub">Kurs auf den Schatz · Ankunft: ???</div>
 
-    <svg id="map-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid meet">
+    <svg id="map-svg" viewBox="0 0 400 800" preserveAspectRatio="none">
       <g stroke="#b99a5f" stroke-width="1" opacity=".35" fill="none">
         <path d="M20 220 q20 -8 40 0 t40 0"/>
         <path d="M300 280 q20 -8 40 0 t40 0"/>
@@ -409,7 +410,7 @@ function snapAndCelebrate(target){
   }, 220);
 
   // Übergang: Boot holt ihn ab
-  setTimeout(startPickup, 3800);
+  setTimeout(startPickup, 1500);
 }
 
 /* ---------- Konfetti ---------- */
