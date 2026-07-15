@@ -244,32 +244,23 @@
         <text x="0" y="-29" text-anchor="middle" font-size="11" fill="#8a6a35" font-weight="bold">N</text>
       </g>
 
-      <g fill="#c9a86a" stroke="#8a6a35" stroke-width="1.5" opacity=".85">
-        <ellipse cx="85"  cy="560" rx="26" ry="16"/>
-        <ellipse cx="315" cy="440" rx="22" ry="14"/>
-        <ellipse cx="75"  cy="330" rx="20" ry="13"/>
-        <ellipse cx="330" cy="620" rx="18" ry="11"/>
-      </g>
-      <g fill="#7a9e4a" opacity=".8">
-        <circle cx="83" cy="556" r="6"/>
-        <circle cx="313" cy="437" r="5"/>
-        <circle cx="74" cy="327" r="4.5"/>
-      </g>
+      <!-- Inseln werden per JS aus ISLANDS erzeugt -->
+      <g id="islands"></g>
 
       <path id="route-done"
-            d="M200 700 C 120 640, 300 560, 200 480 S 90 380, 220 300 S 320 220, 200 150"
+            d="M200 700 C 120 640, 300 560, 200 480 S 90 380, 220 300 S 320 240, 200 178"
             fill="none" stroke="#c0392b" stroke-width="5"
             stroke-linecap="round" opacity=".9"/>
 
       <path id="route"
-            d="M200 700 C 120 640, 300 560, 200 480 S 90 380, 220 300 S 320 220, 200 150"
+            d="M200 700 C 120 640, 300 560, 200 480 S 90 380, 220 300 S 320 240, 200 178"
             fill="none" stroke="#8a3b12" stroke-width="4"
             stroke-dasharray="12 12" stroke-linecap="round" opacity=".85"/>
 
       <circle cx="200" cy="700" r="7" fill="#5b3a12"/>
       <text x="200" y="726" text-anchor="middle" font-size="15" fill="#5b3a12" font-weight="bold">START</text>
 
-      <g transform="translate(200,150)">
+      <g transform="translate(200,178)">
         <circle r="30" fill="none" stroke="#c0392b" stroke-width="2" opacity=".4"/>
         <path d="M-18 -18 L18 18 M18 -18 L-18 18" stroke="#c0392b" stroke-width="7" stroke-linecap="round"/>
         <text x="0" y="-42" text-anchor="middle" font-size="15" fill="#c0392b" font-weight="bold">ONE PIECE</text>
@@ -317,6 +308,20 @@ const NAME       = "Gusti";
 const MESSAGE    = "Alles Gute zum Geburtstag, König der Piraten! 🏴‍☠️";
 const START_DATE = new Date(2026, 6, 25);  // 25.07.2026 (Monat 6 = Juli)
 const END_DATE   = new Date(2027, 6, 25);  // 25.07.2027
+
+/* ---- INSELN / ETAPPEN ----
+   name    = Text auf der Insel (z.B. "BURNING MAN")
+   icon    = "fire" | "flag-br" | "question"  (Symbol)
+   arrive  = Datum, wann er ankommt
+   leave   = Datum, wann er weiterfährt
+   Reihenfolge: von unten (Start) nach oben (Ziel)
+*/
+const ISLANDS = [
+  { name:"BURNING MAN", icon:"fire",     arrive:new Date(2026,7,30),  leave:new Date(2026,8,7)  },
+  { name:"???",         icon:"question", arrive:new Date(2026,10,10), leave:new Date(2026,10,20) },
+  { name:"BRAZIL",      icon:"flag-br",  arrive:new Date(2027,1,5),   leave:new Date(2027,1,25) },
+  { name:"???",         icon:"question", arrive:new Date(2027,4,10),  leave:new Date(2027,4,20) }
+];
 /* ======================================= */
 
 document.getElementById('c-name').textContent = NAME;
@@ -511,6 +516,101 @@ function getProgress(){
   return p;
 }
 
+/* ---------- Insel-Helfer ---------- */
+function dateToProgress(d){
+  let p = (d - START_DATE) / (END_DATE - START_DATE);
+  return Math.max(0, Math.min(1, p));
+}
+
+/* Welche Insel ist gerade dran?
+   Rückgabe: {index, state}
+   state: "at" = liegt gerade dort, "next" = nächste anzustreuernde  */
+function currentIslandInfo(){
+  const now = new Date();
+  for(let i=0; i<ISLANDS.length; i++){
+    const is = ISLANDS[i];
+    if(now >= is.arrive && now <= is.leave) return {index:i, state:"at"};
+    if(now < is.arrive) return {index:i, state:"next"};
+  }
+  return {index:-1, state:"done"};
+}
+
+/* SVG-Symbole */
+function iconSvg(type){
+  if(type === "fire"){
+    return `<path d="M0 -13 C 5 -6, 9 -3, 8 3 C 7 9, 3 12, 0 12 C -3 12, -7 9, -8 3 C -9 -3, -3 -4, -2 -8 C -1 -4, 2 -6, 0 -13 Z"
+              fill="#e25822" stroke="#a33208" stroke-width="1"/>
+            <path d="M0 -4 C 2 -1, 4 1, 3 4 C 2 8, 0 9, 0 9 C 0 9, -2 8, -3 4 C -4 1, -1 0, 0 -4 Z" fill="#ffd93b"/>`;
+  }
+  if(type === "flag-br"){
+    return `<rect x="-11" y="-8" width="22" height="16" fill="#009c3b" stroke="#046a28" stroke-width="1"/>
+            <path d="M0 -6 L9 0 L0 6 L-9 0 Z" fill="#ffdf00"/>
+            <circle cx="0" cy="0" r="3.6" fill="#002776"/>`;
+  }
+  return `<text x="0" y="6" text-anchor="middle" font-size="20" font-weight="bold" fill="#8a6a35">?</text>`;
+}
+
+/* Inseln entlang der Route platzieren */
+function drawIslands(){
+  const route = document.getElementById('route');
+  const g     = document.getElementById('islands');
+  g.innerHTML = '';
+
+  const len  = route.getTotalLength();
+  const info = currentIslandInfo();
+
+  ISLANDS.forEach((is, i) => {
+    // Nur bis zur aktuellen/nächsten Insel anzeigen
+    if(info.state !== "done" && i > info.index) return;
+
+    const p  = dateToProgress(is.arrive);
+    const pt = route.getPointAtLength(len * p);
+
+    // Insel seitlich versetzt (abwechselnd links/rechts)
+    const side = (i % 2 === 0) ? -1 : 1;
+    const ix = pt.x + side * 78;
+    const iy = pt.y;
+
+    const active = (info.state === "at" && i === info.index);
+    const passed = (new Date() > is.leave);
+
+    const el = document.createElementNS('http://www.w3.org/2000/svg','g');
+    el.setAttribute('transform', `translate(${ix},${iy})`);
+    el.innerHTML = `
+      <ellipse rx="${active?40:34}" ry="${active?26:22}"
+               fill="${passed ? '#b39355' : '#c9a86a'}"
+               stroke="${active ? '#c0392b' : '#8a6a35'}"
+               stroke-width="${active?3:1.5}" opacity=".92"/>
+      <g transform="translate(0,-2)">${iconSvg(is.icon)}</g>
+      <text x="0" y="${active?42:37}" text-anchor="middle"
+            font-size="${active?15:13}" font-weight="bold"
+            fill="${active ? '#c0392b' : '#5b3a12'}">${is.name}</text>
+      ${passed ? '<path d="M22 -14 l5 6 l10 -12" stroke="#2e7d32" stroke-width="3.5" fill="none" stroke-linecap="round"/>' : ''}
+    `;
+    g.appendChild(el);
+  });
+}
+
+/* Schiffsposition: liegt es an einer Insel oder fährt es? */
+function shipProgress(){
+  const info = currentIslandInfo();
+  if(info.state === "at"){
+    // Schiff liegt an der Insel -> Position der Insel
+    return dateToProgress(ISLANDS[info.index].arrive);
+  }
+  return getProgress();
+}
+
+/* Ist das Schiff gerade an einer Insel? -> seitlich rüberrücken */
+function shipIslandOffset(){
+  const info = currentIslandInfo();
+  if(info.state === "at"){
+    const side = (info.index % 2 === 0) ? -1 : 1;
+    return side * 78;
+  }
+  return 0;
+}
+
 /* ---------- Schatzkarte ---------- */
 function showMap(){
   const map = document.getElementById('map');
@@ -526,8 +626,9 @@ function showMap(){
 
   // erst nach dem Einblenden positionieren (Layout muss stehen)
   setTimeout(()=>{
+    drawIslands();
     drawRoute(p);
-    positionShip(p);
+    positionShip(shipProgress(), shipIslandOffset());
   }, 300);
 
   const pctEl = document.getElementById('pct');
@@ -563,7 +664,7 @@ function drawRoute(p){
 }
 
 /* ---------- Schiff auf den Pfad setzen ---------- */
-function positionShip(p){
+function positionShip(p, offsetX){
   const svg   = document.getElementById('map-svg');
   const route = document.getElementById('route');
   const ship  = document.getElementById('ship');
@@ -574,7 +675,8 @@ function positionShip(p){
   const ctm = route.getScreenCTM();
   if(!ctm) return;
   const sp = svg.createSVGPoint();
-  sp.x = pt.x; sp.y = pt.y;
+  sp.x = pt.x + (offsetX || 0);
+  sp.y = pt.y;
   const screen = sp.matrixTransform(ctm);
 
   ship.style.left = screen.x + 'px';
@@ -583,7 +685,8 @@ function positionShip(p){
 
 window.addEventListener('resize', ()=>{
   if(document.getElementById('map').style.display === 'block'){
-    positionShip(getProgress());
+    drawIslands();
+    positionShip(shipProgress(), shipIslandOffset());
   }
 });
 </script>
