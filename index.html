@@ -425,7 +425,7 @@
 <script>
 /* ============ HIER ANPASSEN ============ */
 const NAME       = "Gusti";
-const MESSAGE    = "Alles Gute zum 33., King of Music and Science! 🏴‍☠️ Eine Schnapszahl gehört gefeiert wie ein Pirat — und dann geht's auf grosse Fahrt.";
+const MESSAGE    = "Happy 33, King of Music and Science 🏴‍☠️ Eine Schnapszahl gehört gefeiert wie ein Pirat! Und dann geht's auf grosse Fahrt.";
 const START_DATE = new Date(2026, 6, 26);  // 26.07.2026 (Monat 6 = Juli)
 const END_DATE   = new Date(2027, 6, 26);  // 26.07.2027
 
@@ -438,7 +438,7 @@ const END_DATE   = new Date(2027, 6, 26);  // 26.07.2027
 */
 const ISLANDS = [
   { name:"BURNING MAN",  icon:"fire",     arrive:new Date(2026,7,30),  leave:new Date(2026,8,7)  },
-  { name:"CRAZY GIG",    icon:"vinyl",    arrive:new Date(2026,10,10), leave:new Date(2026,10,20) },
+  { name:"BIKE-TOUR",    icon:"bike",     arrive:new Date(2026,9,25),  leave:new Date(2026,10,8) },
   { name:"BRAZIL",       icon:"flag-br",  arrive:new Date(2027,1,5),   leave:new Date(2027,1,25) },
   { name:"FIRST TRACK",  icon:"wave",     arrive:new Date(2027,4,10),  leave:new Date(2027,4,20) }
 ];
@@ -680,14 +680,17 @@ function iconSvg(type){
             <path d="M0 -6 L9 0 L0 6 L-9 0 Z" fill="#ffdf00"/>
             <circle cx="0" cy="0" r="3.6" fill="#002776"/>`;
   }
-  if(type === "vinyl"){
-    return `<circle cx="0" cy="0" r="12" fill="#1a1a1a" stroke="#000" stroke-width="1"/>
-            <circle cx="0" cy="0" r="8.5" fill="none" stroke="#3d3d3d" stroke-width="1"/>
-            <circle cx="0" cy="0" r="6" fill="none" stroke="#3d3d3d" stroke-width="1"/>
-            <circle cx="0" cy="0" r="3.5" fill="#c0392b"/>
-            <circle cx="0" cy="0" r="1" fill="#f2e2bd"/>
-            <path d="M11 -13 L4 -3" stroke="#8a6a35" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="11.5" cy="-13.5" r="2" fill="#8a6a35"/>`;
+  if(type === "bike"){
+    return `<g fill="none" stroke="#5b3a12" stroke-width="1.8" stroke-linecap="round">
+              <circle cx="-8" cy="5" r="6.5"/>
+              <circle cx="8" cy="5" r="6.5"/>
+              <path d="M-8 5 L-2 -6 L6 -6 L8 5"/>
+              <path d="M-2 -6 L2 5"/>
+              <path d="M4 -8 L9 -8"/>
+              <path d="M-3 -9 L-1 -9"/>
+            </g>
+            <circle cx="-8" cy="5" r="1.6" fill="#c0392b"/>
+            <circle cx="8" cy="5" r="1.6" fill="#c0392b"/>`;
   }
   if(type === "wave"){
     return `<g stroke="#c0392b" stroke-width="2.6" stroke-linecap="round">
