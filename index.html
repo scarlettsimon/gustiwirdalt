@@ -129,6 +129,7 @@
     width:min(28vw, 11vh, 120px);
     animation:bob 3s ease-in-out infinite;
     pointer-events:none;
+    transition:left 1.4s cubic-bezier(.45,0,.3,1), top 1.4s cubic-bezier(.45,0,.3,1);
   }
   @keyframes bob {
     0%,100% { transform:translate(-50%,-72%) rotate(-2.5deg); }
@@ -143,6 +144,114 @@
   }
   #ship-hat svg { width:100%; height:auto; display:block; }
   #ship > svg { width:100%; height:auto; display:block; position:relative; z-index:1; }
+
+  /* ---------- FLASCHENPOST ---------- */
+  #bottle {
+    position:absolute; z-index:24;
+    width:min(15vw, 6vh, 64px);
+    display:none;
+    cursor:pointer;
+    pointer-events:auto;
+    transform:translate(-50%,-50%);
+    animation:bottleBob 2.6s ease-in-out infinite;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.4));
+  }
+  #bottle svg { width:100%; height:auto; display:block; pointer-events:none; }
+  @keyframes bottleBob {
+    0%,100% { transform:translate(-50%,-50%) rotate(-9deg); }
+    50%     { transform:translate(-50%,-56%) rotate(9deg); }
+  }
+  /* pulsierender Ring, damit man merkt: anklicken! */
+  #bottle::before {
+    content:''; position:absolute; left:50%; top:50%;
+    width:220%; height:220%;
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    border:2px solid rgba(192,57,43,.6);
+    animation:bottleRing 1.8s ease-out infinite;
+    pointer-events:none;
+  }
+  @keyframes bottleRing {
+    0%   { opacity:.8; transform:translate(-50%,-50%) scale(.6); }
+    100% { opacity:0;  transform:translate(-50%,-50%) scale(1.3); }
+  }
+
+  #bottle-hint {
+    position:absolute; z-index:24;
+    display:none;
+    transform:translate(-50%,0);
+    color:#5b3a12; font-weight:bold;
+    font-size:clamp(.85rem, 3.6vw, 1.1rem);
+    text-align:center; width:max-content; max-width:60vw;
+    text-shadow:0 1px 4px rgba(242,226,189,.9);
+    pointer-events:none;
+    animation:pulse2 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse2 { 0%,100%{opacity:.7} 50%{opacity:1} }
+
+  /* Flaschenpost-Overlay (die geöffnete Nachricht) */
+  #letter {
+    position:absolute; inset:0; z-index:40;
+    display:none; opacity:0;
+    align-items:center; justify-content:center;
+    background:rgba(30,18,4,.7);
+    backdrop-filter:blur(3px);
+    transition:opacity .5s ease;
+    padding:24px;
+  }
+  #letter.show { opacity:1; }
+  #letter-inner {
+    position:relative;
+    width:min(90vw, 460px);
+    max-height:82vh; overflow-y:auto;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 30px, rgba(139,90,30,.06) 31px),
+      linear-gradient(160deg, #fbf3dc 0%, #f3e4bd 100%);
+    border:3px solid #b08a48;
+    border-radius:8px;
+    box-shadow:0 20px 60px rgba(0,0,0,.7), inset 0 0 40px rgba(180,140,70,.25);
+    padding:30px 26px 34px;
+    text-align:center;
+    transform:scale(.7) rotate(-2deg);
+    transition:transform .6s cubic-bezier(.2,1.4,.4,1);
+  }
+  #letter.show #letter-inner { transform:scale(1) rotate(0deg); }
+  /* leicht angebrannte Ecken */
+  #letter-inner::before, #letter-inner::after {
+    content:''; position:absolute; width:60px; height:60px; pointer-events:none;
+    background:radial-gradient(circle at center, rgba(90,50,10,.35), transparent 70%);
+  }
+  #letter-inner::before { top:-10px; left:-10px; }
+  #letter-inner::after  { bottom:-10px; right:-10px; }
+
+  #letter-inner h2 {
+    color:#7a2a12; font-size:clamp(1.2rem, 5.5vw, 1.8rem);
+    letter-spacing:1px; margin-bottom:4px;
+  }
+  #letter-date {
+    color:#9a7038; font-size:clamp(.75rem, 3.2vw, .9rem);
+    margin-bottom:16px; font-style:italic;
+  }
+  #letter-divider {
+    width:70%; height:2px; margin:0 auto 18px;
+    background:linear-gradient(90deg, transparent, #b08a48, transparent);
+  }
+  #letter-task {
+    color:#3a2410; font-size:clamp(1.05rem, 4.6vw, 1.35rem);
+    line-height:1.6; white-space:pre-wrap;
+  }
+  #letter-close {
+    margin-top:26px;
+    display:inline-block;
+    background:linear-gradient(#c0392b,#a5281b);
+    color:#fff; font-weight:bold;
+    font-size:clamp(.95rem, 4vw, 1.1rem);
+    padding:12px 30px; border-radius:99px;
+    border:none; cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+    letter-spacing:.5px;
+  }
+  #letter-close:active { transform:translateY(2px); }
 
   /* Anzeige-Bereich unten – eigener Streifen, Schiff kann nicht drüber */
   #progress-box {
@@ -378,10 +487,44 @@
       </svg>
     </div>
 
+    <!-- Flaschenpost (Position per JS) -->
+    <div id="bottle">
+      <svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg">
+        <!-- Korken -->
+        <rect x="24" y="4" width="12" height="12" rx="2" fill="#a9743e" stroke="#7b4a1e" stroke-width="1.5"/>
+        <!-- Flaschenhals -->
+        <rect x="25" y="14" width="10" height="14" fill="#7fc9b5" opacity=".85"/>
+        <!-- Flaschenkörper -->
+        <path d="M20 28 Q14 34 14 50 L14 78 Q14 86 22 86 L38 86 Q46 86 46 78 L46 50 Q46 34 40 28 Z"
+              fill="#7fc9b5" opacity=".7" stroke="#4e9d88" stroke-width="1.5"/>
+        <!-- Glanz -->
+        <path d="M20 36 Q17 44 18 60 L18 76" stroke="#eafff9" stroke-width="2.5"
+              fill="none" opacity=".7" stroke-linecap="round"/>
+        <!-- Zettel drin -->
+        <rect x="22" y="52" width="16" height="24" rx="1.5" fill="#f6eccf"
+              transform="rotate(-8 30 64)" stroke="#cbb27e" stroke-width="1"/>
+        <line x1="25" y1="58" x2="35" y2="57" stroke="#b49a63" stroke-width="1" transform="rotate(-8 30 64)"/>
+        <line x1="25" y1="62" x2="35" y2="61" stroke="#b49a63" stroke-width="1" transform="rotate(-8 30 64)"/>
+        <line x1="25" y1="66" x2="33" y2="65" stroke="#b49a63" stroke-width="1" transform="rotate(-8 30 64)"/>
+      </svg>
+    </div>
+    <div id="bottle-hint">Eine Flaschenpost! 📜<br>Tippe drauf</div>
+
     <div id="progress-box">
       <div id="pct">0%</div>
       <div id="pct-label">der Reise geschafft</div>
       <div id="bar"><div id="bar-fill"></div></div>
+    </div>
+
+    <!-- Geöffnete Flaschenpost -->
+    <div id="letter">
+      <div id="letter-inner">
+        <h2>🏴‍☠️ Flaschenpost</h2>
+        <div id="letter-date"></div>
+        <div id="letter-divider"></div>
+        <div id="letter-task"></div>
+        <button id="letter-close">Aye, verstanden!</button>
+      </div>
     </div>
   </div>
 
@@ -442,6 +585,36 @@ const ISLANDS = [
   { name:"BRAZIL",       icon:"flag-br",  arrive:new Date(2027,1,5),   leave:new Date(2027,1,25) },
   { name:"FIRST TRACK",  icon:"wave",     arrive:new Date(2027,4,10),  leave:new Date(2027,4,20) }
 ];
+
+/* ---- FLASCHENPOST-TAGE ----
+   An diesen Tagen kommt das Schiff vom Kurs ab und dockt an einer
+   treibenden Flaschenpost an. Gusti tippt sie an -> Aufgabe erscheint.
+
+   date = Datum (Jahr, Monat-1, Tag) -> Monat ist 0-basiert! Januar=0, ... Dezember=11
+   task = Der Text in der Flasche (\n macht einen Zeilenumbruch)
+   kind = "task"  -> Aufgabe: Schiff macht den Abstecher (Standard, kann weggelassen werden)
+          "reply" -> Antwort/Bestätigung: Schiff bleibt AUF KURS, nur eine kurze Botschaft
+
+   Du kannst so viele Einträge hinzufügen, wie du willst.
+*/
+const BOTTLE_MESSAGES = [
+  {
+    date: new Date(2026, 7, 8),   // 08.08.2026  (Monat 7 = August)
+    kind: "task",
+    task: "An alle Piraten, die diese Reise wagen —\nmöge Glück und Hoffnung stets mit euch segeln. ⚓\n\nDoch kein Käpt'n bezwingt die Grand Line allein. Ohne eine treue Crew bleibt das One Piece nur ein Traum am Horizont.\n\nDeine Aufgabe, Käpt'n:\nFinde deine Crew — 5 Gefährten oder mehr müssen es sein. Erst dann darf dein Schiff die Segel setzen.\n\nSchick mir einen Beweis (ein Foto deiner Mannschaft), und die Reise geht weiter. 🏴‍☠️"
+  },
+  {
+    date: new Date(2026, 7, 9),   // 09.08.2026  – Bestätigung, Schiff wieder auf Kurs
+    kind: "reply",
+    task: "Das sieht nach einer starken Crew aus, Käpt'n! 💪🏴‍☠️\n\nMit solchen Gefährten an Bord steht dem One Piece nichts mehr im Weg.\n\nAnker lichten — auf geht's! ⚓"
+  },
+  // Beispiel für weitere Tage – einfach kopieren, Datum, kind & Text ändern:
+  // {
+  //   date: new Date(2026, 8, 12),  // 12.09.2026
+  //   kind: "task",
+  //   task: "Ruf einen alten Freund an, den du zu lange nicht gehört hast."
+  // },
+];
 /* ======================================= */
 
 /* ---- Aktuelles Datum (mit Test-Möglichkeit) ----
@@ -455,6 +628,22 @@ function today(){
     if(!isNaN(d)) return d;
   }
   return new Date();
+}
+
+/* Prüft, ob zwei Daten am selben Kalendertag liegen */
+function sameDay(a, b){
+  return a.getFullYear() === b.getFullYear() &&
+         a.getMonth()    === b.getMonth() &&
+         a.getDate()     === b.getDate();
+}
+
+/* Gibt die Flaschenpost für heute zurück (oder null) */
+function bottleForToday(){
+  const now = today();
+  for(const b of BOTTLE_MESSAGES){
+    if(sameDay(now, b.date)) return b;
+  }
+  return null;
 }
 
 document.getElementById('c-name').textContent = NAME;
@@ -786,6 +975,8 @@ function showMap(){
     drawIslands();
     drawRoute(p);
     positionShip(shipProgress(), shipIslandOffset());
+    // Nach dem normalen Setzen: prüfen, ob heute eine Flaschenpost wartet
+    maybeStartBottleDetour(p);
   }, 300);
 
   const pctEl = document.getElementById('pct');
@@ -809,6 +1000,133 @@ function showMap(){
     }, 2500);
   }
 }
+
+/* ---------- FLASCHENPOST-ABSTECHER ----------
+   An einem Flaschenpost-Tag:
+   - kind "task"  -> Schiff kommt vom Kurs ab, fährt zur Seite, dockt an,
+                     daneben erscheint die Flaschenpost.
+   - kind "reply" -> Schiff bleibt AUF KURS, die Flaschenpost taucht
+                     einfach neben dem Schiff auf (kurze Bestätigung). */
+function maybeStartBottleDetour(baseProgress){
+  const bottleData = bottleForToday();
+  if(!bottleData) return;                 // heute keine Flaschenpost
+  if(baseProgress >= 1) return;           // Ziel schon erreicht -> nichts
+
+  const isReply = (bottleData.kind === "reply");
+
+  const svg   = document.getElementById('map-svg');
+  const route = document.getElementById('route');
+  const ship  = document.getElementById('ship');
+  const bottle = document.getElementById('bottle');
+  const bottleHint = document.getElementById('bottle-hint');
+
+  const len = route.getTotalLength();
+
+  // Punkt auf der Route bei aktuellem Fortschritt
+  const basePt = route.getPointAtLength(len * baseProgress);
+
+  // Abstecher-Ziel: seitlich vom Kurs abkommen (mal links, mal rechts,
+  // je nach Tag, damit es abwechslungsreich wirkt)
+  const dayNum = today().getDate();
+  const side   = (dayNum % 2 === 0) ? 1 : -1;
+
+  // Bei "reply" bleibt das Schiff auf Kurs -> kein seitlicher Versatz
+  const detourDX = isReply ? 0 : side * 96;   // wie weit seitlich raus
+  const detourDY = isReply ? 0 : -46;         // etwas nach "vorne" (oben)
+
+  // in Bildschirm-Koordinaten umrechnen
+  const ctm = route.getScreenCTM();
+  if(!ctm) return;
+
+  function toScreen(x, y){
+    const sp = svg.createSVGPoint();
+    sp.x = x; sp.y = y;
+    return sp.matrixTransform(ctm);
+  }
+
+  const shipTarget   = toScreen(basePt.x + detourDX,        basePt.y + detourDY);
+  // Flasche liegt bei "reply" einfach seitlich neben dem Schiff
+  const bottleSide   = isReply ? side * 60 : side * 54;
+  const bottleTarget = toScreen(basePt.x + detourDX + bottleSide, basePt.y + detourDY - 6);
+
+  if(isReply){
+    // Schiff bleibt auf Kurs -> nur Flaschenpost neben ihm einblenden
+    setTimeout(()=>{
+      bottle.style.left = bottleTarget.x + 'px';
+      bottle.style.top  = bottleTarget.y + 'px';
+      bottle.style.display = 'block';
+
+      bottleHint.style.left = bottleTarget.x + 'px';
+      bottleHint.style.top  = (bottleTarget.y + 34) + 'px';
+      bottleHint.style.display = 'block';
+    }, 1600);
+  } else {
+    // 1) kurz warten (Schiff steht erst auf Kurs), dann seitlich wegfahren
+    setTimeout(()=>{
+      ship.style.left = shipTarget.x + 'px';
+      ship.style.top  = shipTarget.y + 'px';
+    }, 1600);
+
+    // 2) Flaschenpost auftauchen lassen, sobald das Schiff angedockt hat
+    setTimeout(()=>{
+      bottle.style.left = bottleTarget.x + 'px';
+      bottle.style.top  = bottleTarget.y + 'px';
+      bottle.style.display = 'block';
+
+      bottleHint.style.left = bottleTarget.x + 'px';
+      bottleHint.style.top  = (bottleTarget.y + 34) + 'px';
+      bottleHint.style.display = 'block';
+    }, 3200);
+  }
+
+  // Klick auf die Flasche -> Nachricht öffnen
+  bottle.onclick = ()=> openLetter(bottleData);
+}
+
+/* Flaschenpost öffnen */
+function openLetter(bottleData){
+  const letter     = document.getElementById('letter');
+  const letterHead = document.querySelector('#letter-inner h2');
+  const letterDate = document.getElementById('letter-date');
+  const letterTask = document.getElementById('letter-task');
+  const letterClose= document.getElementById('letter-close');
+  const bottle     = document.getElementById('bottle');
+  const bottleHint = document.getElementById('bottle-hint');
+
+  const isReply = (bottleData.kind === "reply");
+
+  // Überschrift + Knopf je nach Art
+  if(isReply){
+    letterHead.textContent = "⚓ Nachricht vom Ausguck";
+    letterClose.textContent = "Volle Kraft voraus!";
+    letterClose.style.background = "linear-gradient(#2e7d32,#1f5d24)";
+  } else {
+    letterHead.textContent = "🏴‍☠️ Flaschenpost";
+    letterClose.textContent = "Aye, verstanden!";
+    letterClose.style.background = "linear-gradient(#c0392b,#a5281b)";
+  }
+
+  // Datum hübsch anzeigen
+  const d = bottleData.date;
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  letterDate.textContent = `Angespült am ${dd}.${mm}.${d.getFullYear()}`;
+  letterTask.textContent = bottleData.task;
+
+  // Flasche + Hinweis ausblenden
+  bottle.style.display = 'none';
+  bottleHint.style.display = 'none';
+
+  letter.style.display = 'flex';
+  requestAnimationFrame(()=> letter.classList.add('show'));
+}
+
+/* Flaschenpost schließen */
+document.getElementById('letter-close').addEventListener('click', ()=>{
+  const letter = document.getElementById('letter');
+  letter.classList.remove('show');
+  setTimeout(()=> letter.style.display = 'none', 500);
+});
 
 /* ---------- Zurückgelegten Weg rot einfärben ---------- */
 function drawRoute(p){
@@ -846,6 +1164,12 @@ window.addEventListener('resize', ()=>{
   if(document.getElementById('map').style.display === 'block'){
     drawIslands();
     positionShip(shipProgress(), shipIslandOffset());
+    // Bei Größenänderung Flaschenpost-Position neu berechnen,
+    // falls gerade ein Abstecher läuft
+    const bottle = document.getElementById('bottle');
+    if(bottle.style.display === 'block'){
+      maybeStartBottleDetour(shipProgress());
+    }
   }
 });
 </script>
