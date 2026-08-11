@@ -145,6 +145,56 @@
   #ship-hat svg { width:100%; height:auto; display:block; }
   #ship > svg { width:100%; height:auto; display:block; position:relative; z-index:1; }
 
+  /* ---------- GEGNER-SCHIFF ---------- */
+  #enemy-ship {
+    position:absolute; z-index:22;
+    width:min(26vw, 10vh, 110px);
+    animation:bobEnemy 3.4s ease-in-out infinite;
+    pointer-events:none;
+    transition:left 1.4s cubic-bezier(.45,0,.3,1), top 1.4s cubic-bezier(.45,0,.3,1);
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));
+    display:none;
+  }
+  @keyframes bobEnemy {
+    0%,100% { transform:translate(-50%,-72%) rotate(2.5deg); }
+    50%     { transform:translate(-50%,-77%) rotate(-2.5deg); }
+  }
+  #enemy-ship > svg { width:100%; height:auto; display:block; position:relative; z-index:1; }
+  #enemy-face {
+    position:absolute; left:50%; top:0;
+    transform:translate(-50%,-86%);
+    width:46%; z-index:2;
+  }
+  #enemy-face img {
+    width:100%; display:block; border-radius:50%;
+    border:2px solid #2a2a2a;
+  }
+  #enemy-flag {
+    position:absolute; left:52%; top:-6%;
+    transform:translate(-50%,-70%);
+    width:52%; z-index:3; pointer-events:none;
+  }
+  #enemy-flag svg { width:100%; height:auto; display:block; }
+
+  /* ---------- KANONENKUGELN ---------- */
+  .cannonball {
+    position:absolute; z-index:28;
+    width:14px; height:14px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #6a6a6a, #1a1a1a 70%);
+    box-shadow:0 0 6px rgba(0,0,0,.6);
+    pointer-events:none;
+    will-change:transform, left, top;
+  }
+  .splash {
+    position:absolute; z-index:27;
+    width:26px; height:26px;
+    pointer-events:none;
+    border-radius:50%;
+    border:2px solid rgba(120,90,40,.7);
+    transform:translate(-50%,-50%) scale(0);
+  }
+
   /* ---------- FLASCHENPOST ---------- */
   #bottle {
     position:absolute; z-index:24;
@@ -455,6 +505,49 @@
       </g>
     </svg>
 
+    <!-- ===== GEGNER-SCHIFF (LeninaBallerina) ===== -->
+    <div id="enemy-ship">
+      <!-- Schwarze Piratenflagge (Totenkopf) -->
+      <div id="enemy-flag">
+        <svg viewBox="0 0 90 78" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="4" width="4" height="72" fill="#2a2a2a"/>
+          <path d="M10 6 L84 6 L84 44 L10 44 Z" fill="#111" stroke="#000" stroke-width="1"/>
+          <path d="M10 6 L84 6 L84 44 L10 44 Z" fill="none" stroke="#444" stroke-width="1.5"/>
+          <!-- Totenkopf -->
+          <g transform="translate(47,23)" fill="#f2f2f2">
+            <ellipse cx="0" cy="-2" rx="11" ry="10"/>
+            <rect x="-8" y="4" width="16" height="7" rx="3"/>
+            <circle cx="-4.5" cy="-3" r="3" fill="#111"/>
+            <circle cx="4.5" cy="-3" r="3" fill="#111"/>
+            <path d="M0 1 l-2.2 4 h4.4 Z" fill="#111"/>
+          </g>
+          <!-- gekreuzte Knochen -->
+          <g stroke="#f2f2f2" stroke-width="4" stroke-linecap="round">
+            <path d="M34 42 L60 18"/>
+            <path d="M60 42 L34 18"/>
+          </g>
+          <g fill="#f2f2f2">
+            <circle cx="34" cy="42" r="3.4"/><circle cx="60" cy="42" r="3.4"/>
+            <circle cx="60" cy="18" r="3.4"/><circle cx="34" cy="18" r="3.4"/>
+          </g>
+        </svg>
+      </div>
+      <!-- Foto der Gegnerin (Freundin) -->
+      <div id="enemy-face">
+        <img src="LeninaBallerina.PNG" alt="LeninaBallerina">
+      </div>
+      <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+        <rect x="96" y="24" width="6" height="66" fill="#3a2a1a"/>
+        <path d="M102 30 Q138 48 102 66 Z" fill="#5a5a5a" stroke="#3a3a3a" stroke-width="1.5"/>
+        <path d="M98 34 Q64 50 98 68 Z" fill="#5a5a5a" stroke="#3a3a3a" stroke-width="1.5"/>
+        <path d="M30 92 L170 92 L150 128 Q100 138 50 128 Z" fill="#4a3524" stroke="#241a10" stroke-width="2"/>
+        <path d="M30 92 L170 92 L166 100 L34 100 Z" fill="#5e4630"/>
+        <circle cx="70" cy="108" r="5" fill="#8a3b12" stroke="#241a10" stroke-width="1.5"/>
+        <circle cx="100" cy="110" r="5" fill="#8a3b12" stroke="#241a10" stroke-width="1.5"/>
+        <circle cx="130" cy="108" r="5" fill="#8a3b12" stroke="#241a10" stroke-width="1.5"/>
+      </svg>
+    </div>
+
     <div id="ship">
       <div id="ship-face">
         <div id="ship-hat">
@@ -594,6 +687,11 @@ const ISLANDS = [
    task = Der Text in der Flasche (\n macht einen Zeilenumbruch)
    kind = "task"  -> Aufgabe: Schiff macht den Abstecher (Standard, kann weggelassen werden)
           "reply" -> Antwort/Bestätigung: Schiff bleibt AUF KURS, nur eine kurze Botschaft
+          "enemy" -> Nachricht der Gegnerin: erscheint beim GEGNER-Schiff.
+                     Kann mit "until" einen Zeitraum bekommen (mehrere Tage sichtbar).
+
+   until = (optional) Enddatum -> Nachricht ist von "date" bis "until" (einschliesslich) sichtbar.
+           Ohne "until" gilt sie nur am Tag "date".
 
    Du kannst so viele Einträge hinzufügen, wie du willst.
 */
@@ -608,12 +706,16 @@ const BOTTLE_MESSAGES = [
     kind: "reply",
     task: "Das sieht nach einer starken Crew aus, Käpt'n! 💪🏴‍☠️\n\nMit solchen Gefährten an Bord steht dem One Piece nichts mehr im Weg.\n\nAnker lichten — auf geht's! ⚓"
   },
-  // Beispiel für weitere Tage – einfach kopieren, Datum, kind & Text ändern:
-  // {
-  //   date: new Date(2026, 8, 12),  // 12.09.2026
-  //   kind: "task",
-  //   task: "Ruf einen alten Freund an, den du zu lange nicht gehört hast."
-  // },
+  {
+    /* ---- Nachricht der bösen Piratin LeninaBallerina ----
+       Sichtbar über 3 Tage. Passe date (Start) und until (Ende) an,
+       oder verschiebe den Zeitraum, wie du magst.                 */
+    date:  new Date(2026, 7, 12),  // 12.08.2026  Start
+    until: new Date(2026, 7, 14),  // 14.08.2026  Ende  -> 3 Tage sichtbar
+    kind:  "enemy",
+    from:  "LeninaBallerina",
+    task:  "GUSCH D. GUGU,\n\ndu und deine lächerliche Crew werdet mich NIEMALS aufholen.\n\nIch habe bereits fast alle Inseln bezwungen und das One Piece ist zum Greifen nah — mir fehlt nicht mehr viel, dann gehört es MIR!\n\nUnd wenn ich es erst in den Händen halte, dann werde ich dich finden... und zerstören.\n\n— LeninaBallerina, die euch alle überholt 🏴‍☠️💀"
+  },
 ];
 /* ======================================= */
 
@@ -637,11 +739,31 @@ function sameDay(a, b){
          a.getDate()     === b.getDate();
 }
 
-/* Gibt die Flaschenpost für heute zurück (oder null) */
+/* Prüft, ob "now" im Zeitraum [start, end] liegt (tagesgenau, inkl. Rändern) */
+function inDayRange(now, start, end){
+  const n = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  return n >= s && n <= e;
+}
+
+/* Gibt die "normale" Flaschenpost (task/reply) für heute zurück (oder null) */
 function bottleForToday(){
   const now = today();
   for(const b of BOTTLE_MESSAGES){
+    if(b.kind === "enemy") continue;   // Gegner-Nachrichten separat
     if(sameDay(now, b.date)) return b;
+  }
+  return null;
+}
+
+/* Gibt die aktive Gegner-Nachricht (LeninaBallerina) für heute zurück (oder null) */
+function enemyBottleForToday(){
+  const now = today();
+  for(const b of BOTTLE_MESSAGES){
+    if(b.kind !== "enemy") continue;
+    const end = b.until ? b.until : b.date;   // ohne "until" nur ein Tag
+    if(inDayRange(now, b.date, end)) return b;
   }
   return null;
 }
@@ -957,6 +1079,121 @@ function shipIslandOffset(){
   return 0;
 }
 
+/* ---------- GEGNER-SCHIFF (LeninaBallerina) ---------- */
+const ENEMY_LEAD = 0.15;   // Vorsprung des Gegners (Anteil der Reststrecke)
+
+function enemyProgress(){
+  // Gegner liegt vor Gusti, der Vorsprung schrumpft Richtung Ziel,
+  // sodass Gusti bei 100% fast aufgeschlossen hat (dramatisch knapp).
+  const p = getProgress();
+  let e = p + ENEMY_LEAD * (1 - p);
+  return Math.min(0.985, e);   // nie ganz am One Piece -> Gusti gewinnt knapp
+}
+
+function positionEnemy(){
+  const svg   = document.getElementById('map-svg');
+  const route = document.getElementById('route');
+  const enemy = document.getElementById('enemy-ship');
+  if(!enemy) return;
+
+  enemy.style.display = 'block';
+
+  const len = route.getTotalLength();
+  const pt  = route.getPointAtLength(len * enemyProgress());
+
+  const ctm = route.getScreenCTM();
+  if(!ctm) return;
+  const sp = svg.createSVGPoint();
+  // leicht seitlich versetzt, damit es Gustis Schiff nicht überlappt
+  sp.x = pt.x + 32;
+  sp.y = pt.y;
+  const screen = sp.matrixTransform(ctm);
+
+  enemy.style.left = screen.x + 'px';
+  enemy.style.top  = screen.y + 'px';
+}
+
+/* ---------- KANONENKUGELN zwischen den Schiffen ---------- */
+let cannonTimer = null;
+
+function shipScreenCenter(el){
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width/2, y: r.top + r.height*0.4 };
+}
+
+function fireCannonball(fromEl, toEl){
+  if(!fromEl || !toEl) return;
+  if(fromEl.style.display === 'none' || toEl.style.display === 'none') return;
+
+  const a = shipScreenCenter(fromEl);
+  const b = shipScreenCenter(toEl);
+
+  // Kugel fliegt nur ~72% der Strecke -> trifft NIE, platscht davor ins Wasser
+  const missAt = 0.62 + Math.random()*0.16;   // zwischen 62% und 78%
+  const landX  = a.x + (b.x - a.x) * missAt;
+  const landY  = a.y + (b.y - a.y) * missAt;
+
+  const ball = document.createElement('div');
+  ball.className = 'cannonball';
+  ball.style.left = a.x + 'px';
+  ball.style.top  = a.y + 'px';
+  ball.style.transform = 'translate(-50%,-50%)';
+  stage.appendChild(ball);
+
+  // Bogen (Parabel) über einen Zwischen-Hochpunkt
+  const midX = (a.x + landX)/2;
+  const arcH = 40 + Math.random()*40;   // Flughöhe
+  const midY = Math.min(a.y, landY) - arcH;
+
+  const dur = 900 + Math.random()*300;
+  const anim = ball.animate([
+    { left:a.x+'px',   top:a.y+'px',   offset:0 },
+    { left:midX+'px',  top:midY+'px',  offset:.5 },
+    { left:landX+'px', top:landY+'px', offset:1 }
+  ], { duration:dur, easing:'ease-out', fill:'forwards' });
+
+  anim.onfinish = ()=>{
+    ball.remove();
+    splashAt(landX, landY);
+  };
+}
+
+function splashAt(x, y){
+  const s = document.createElement('div');
+  s.className = 'splash';
+  s.style.left = x + 'px';
+  s.style.top  = y + 'px';
+  stage.appendChild(s);
+  s.animate([
+    { transform:'translate(-50%,-50%) scale(0)',   opacity:.9 },
+    { transform:'translate(-50%,-50%) scale(1.8)', opacity:0 }
+  ], { duration:600, easing:'ease-out', fill:'forwards' });
+  setTimeout(()=> s.remove(), 620);
+}
+
+function startCannonBattle(){
+  const ship  = document.getElementById('ship');
+  const enemy = document.getElementById('enemy-ship');
+  if(cannonTimer) clearInterval(cannonTimer);
+
+  function volley(){
+    // mal feuert Gusti, mal die Gegnerin
+    if(Math.random() < 0.5) fireCannonball(ship, enemy);
+    else                    fireCannonball(enemy, ship);
+    // gelegentlich ein schneller Doppelschuss
+    if(Math.random() < 0.4){
+      setTimeout(()=>{
+        if(Math.random() < 0.5) fireCannonball(enemy, ship);
+        else                    fireCannonball(ship, enemy);
+      }, 380);
+    }
+  }
+
+  // erster Schuss nach kurzer Verzögerung, dann immer wieder
+  setTimeout(volley, 1200);
+  cannonTimer = setInterval(volley, 2600);
+}
+
 /* ---------- Schatzkarte ---------- */
 function showMap(){
   const map = document.getElementById('map');
@@ -975,8 +1212,12 @@ function showMap(){
     drawIslands();
     drawRoute(p);
     positionShip(shipProgress(), shipIslandOffset());
+    positionEnemy();
     // Nach dem normalen Setzen: prüfen, ob heute eine Flaschenpost wartet
     maybeStartBottleDetour(p);
+    maybeShowEnemyBottle();
+    // Kanonen-Duell starten, sobald beide Schiffe stehen
+    startCannonBattle();
   }, 300);
 
   const pctEl = document.getElementById('pct');
@@ -1083,6 +1324,58 @@ function maybeStartBottleDetour(baseProgress){
   bottle.onclick = ()=> openLetter(bottleData);
 }
 
+/* ---------- GEGNER-FLASCHENPOST (LeninaBallerina) ----------
+   Erscheint direkt beim Gegner-Schiff und bleibt über den ganzen
+   Zeitraum (z.B. 3 Tage) klickbar. Nutzt eine eigene Flasche-Kopie. */
+let enemyBottleEl = null;
+let enemyBottleHintEl = null;
+
+function maybeShowEnemyBottle(){
+  const data = enemyBottleForToday();
+
+  // Wenn keine aktive Gegner-Nachricht: evtl. vorhandene entfernen
+  if(!data){
+    if(enemyBottleEl){ enemyBottleEl.remove(); enemyBottleEl = null; }
+    if(enemyBottleHintEl){ enemyBottleHintEl.remove(); enemyBottleHintEl = null; }
+    return;
+  }
+
+  const enemy = document.getElementById('enemy-ship');
+  if(!enemy || enemy.style.display === 'none') return;
+
+  // Position: direkt unterhalb/neben dem Gegner-Schiff
+  const r = enemy.getBoundingClientRect();
+  const bx = r.left + r.width * 0.5;
+  const by = r.top  + r.height * 0.62;
+
+  // Flasche erstellen (falls noch nicht vorhanden)
+  if(!enemyBottleEl){
+    enemyBottleEl = document.getElementById('bottle').cloneNode(true);
+    enemyBottleEl.id = 'enemy-bottle';
+    enemyBottleEl.style.display = 'block';
+    // roter Ring -> als "böse" Nachricht kennzeichnen (überschreibt Standard leicht)
+    enemyBottleEl.style.filter = 'drop-shadow(0 4px 8px rgba(120,0,0,.6))';
+    stage.appendChild(enemyBottleEl);
+    enemyBottleEl.onclick = ()=> openLetter(data);
+
+    enemyBottleHintEl = document.createElement('div');
+    enemyBottleHintEl.id = 'enemy-bottle-hint';
+    enemyBottleHintEl.style.cssText =
+      'position:absolute; z-index:24; transform:translate(-50%,0);' +
+      'color:#7a1212; font-weight:bold; text-align:center; width:max-content;' +
+      'max-width:60vw; text-shadow:0 1px 4px rgba(242,226,189,.9); pointer-events:none;' +
+      'font-size:clamp(.8rem,3.4vw,1.05rem);';
+    enemyBottleHintEl.innerHTML = 'Nachricht der Gegnerin! 💀<br>Tippe drauf';
+    enemyBottleHintEl.style.animation = 'pulse2 1.8s ease-in-out infinite';
+    stage.appendChild(enemyBottleHintEl);
+  }
+
+  enemyBottleEl.style.left = bx + 'px';
+  enemyBottleEl.style.top  = by + 'px';
+  enemyBottleHintEl.style.left = bx + 'px';
+  enemyBottleHintEl.style.top  = (by + 30) + 'px';
+}
+
 /* Flaschenpost öffnen */
 function openLetter(bottleData){
   const letter     = document.getElementById('letter');
@@ -1090,20 +1383,29 @@ function openLetter(bottleData){
   const letterDate = document.getElementById('letter-date');
   const letterTask = document.getElementById('letter-task');
   const letterClose= document.getElementById('letter-close');
+  const letterInner= document.getElementById('letter-inner');
   const bottle     = document.getElementById('bottle');
   const bottleHint = document.getElementById('bottle-hint');
 
   const isReply = (bottleData.kind === "reply");
+  const isEnemy = (bottleData.kind === "enemy");
 
   // Überschrift + Knopf je nach Art
-  if(isReply){
+  if(isEnemy){
+    letterHead.textContent = "💀 Botschaft von " + (bottleData.from || "der Gegnerin");
+    letterClose.textContent = "Das werden wir ja sehen!";
+    letterClose.style.background = "linear-gradient(#1a1a1a,#000)";
+    letterInner.style.borderColor = "#7a1212";
+  } else if(isReply){
     letterHead.textContent = "⚓ Nachricht vom Ausguck";
     letterClose.textContent = "Volle Kraft voraus!";
     letterClose.style.background = "linear-gradient(#2e7d32,#1f5d24)";
+    letterInner.style.borderColor = "#b08a48";
   } else {
     letterHead.textContent = "🏴‍☠️ Flaschenpost";
     letterClose.textContent = "Aye, verstanden!";
     letterClose.style.background = "linear-gradient(#c0392b,#a5281b)";
+    letterInner.style.borderColor = "#b08a48";
   }
 
   // Datum hübsch anzeigen
@@ -1113,12 +1415,17 @@ function openLetter(bottleData){
   letterDate.textContent = `Angespült am ${dd}.${mm}.${d.getFullYear()}`;
   letterTask.textContent = bottleData.task;
 
-  // Flasche + Hinweis ausblenden
+  // Alle Flaschen + Hinweise ausblenden
   bottle.style.display = 'none';
   bottleHint.style.display = 'none';
+  if(enemyBottleEl) enemyBottleEl.style.display = 'none';
+  if(enemyBottleHintEl) enemyBottleHintEl.style.display = 'none';
 
   letter.style.display = 'flex';
   requestAnimationFrame(()=> letter.classList.add('show'));
+
+  // merken, welche Flasche offen war (für Wieder-Einblenden nach Schließen)
+  letter.dataset.openKind = bottleData.kind || 'task';
 }
 
 /* Flaschenpost schließen */
@@ -1126,6 +1433,12 @@ document.getElementById('letter-close').addEventListener('click', ()=>{
   const letter = document.getElementById('letter');
   letter.classList.remove('show');
   setTimeout(()=> letter.style.display = 'none', 500);
+
+  // Gegner-Flasche bleibt über den ganzen Zeitraum sichtbar -> wieder einblenden
+  if(letter.dataset.openKind === 'enemy' && enemyBottleForToday()){
+    if(enemyBottleEl) enemyBottleEl.style.display = 'block';
+    if(enemyBottleHintEl) enemyBottleHintEl.style.display = 'block';
+  }
 });
 
 /* ---------- Zurückgelegten Weg rot einfärben ---------- */
@@ -1164,6 +1477,8 @@ window.addEventListener('resize', ()=>{
   if(document.getElementById('map').style.display === 'block'){
     drawIslands();
     positionShip(shipProgress(), shipIslandOffset());
+    positionEnemy();
+    maybeShowEnemyBottle();
     // Bei Größenänderung Flaschenpost-Position neu berechnen,
     // falls gerade ein Abstecher läuft
     const bottle = document.getElementById('bottle');
