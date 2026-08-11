@@ -199,7 +199,7 @@
   }
 
   /* ---------- FLASCHENPOST ---------- */
-  #bottle {
+  #bottle, #enemy-bottle {
     position:absolute; z-index:24;
     width:min(15vw, 6vh, 64px);
     display:none;
@@ -209,13 +209,13 @@
     animation:bottleBob 2.6s ease-in-out infinite;
     filter:drop-shadow(0 4px 8px rgba(0,0,0,.4));
   }
-  #bottle svg { width:100%; height:auto; display:block; pointer-events:none; }
+  #bottle svg, #enemy-bottle svg { width:100%; height:auto; display:block; pointer-events:none; }
   @keyframes bottleBob {
     0%,100% { transform:translate(-50%,-50%) rotate(-9deg); }
     50%     { transform:translate(-50%,-56%) rotate(9deg); }
   }
   /* pulsierender Ring, damit man merkt: anklicken! */
-  #bottle::before {
+  #bottle::before, #enemy-bottle::before {
     content:''; position:absolute; left:50%; top:50%;
     width:220%; height:220%;
     transform:translate(-50%,-50%);
@@ -1373,20 +1373,30 @@ function maybeShowEnemyBottle(){
     enemyBottleEl = document.getElementById('bottle').cloneNode(true);
     enemyBottleEl.id = 'enemy-bottle';
     enemyBottleEl.style.display = 'block';
-    // roter Ring -> als "böse" Nachricht kennzeichnen (überschreibt Standard leicht)
+    enemyBottleEl.style.pointerEvents = 'auto';
+    enemyBottleEl.style.cursor = 'pointer';
+    // roter Ring -> als "böse" Nachricht kennzeichnen
     enemyBottleEl.style.filter = 'drop-shadow(0 4px 8px rgba(120,0,0,.6))';
     stage.appendChild(enemyBottleEl);
-    enemyBottleEl.onclick = ()=> openLetter(data);
+
+    // Öffnen bei Klick UND Touch (Handy)
+    const openEnemy = (ev)=>{ ev.preventDefault(); ev.stopPropagation(); openLetter(data); };
+    enemyBottleEl.addEventListener('click', openEnemy);
+    enemyBottleEl.addEventListener('touchend', openEnemy, {passive:false});
 
     enemyBottleHintEl = document.createElement('div');
     enemyBottleHintEl.id = 'enemy-bottle-hint';
     enemyBottleHintEl.style.cssText =
       'position:absolute; z-index:24; transform:translate(-50%,0);' +
       'color:#7a1212; font-weight:bold; text-align:center; width:max-content;' +
-      'max-width:60vw; text-shadow:0 1px 4px rgba(242,226,189,.9); pointer-events:none;' +
+      'max-width:60vw; text-shadow:0 1px 4px rgba(242,226,189,.9);' +
+      'cursor:pointer; pointer-events:auto;' +
       'font-size:clamp(.8rem,3.4vw,1.05rem);';
     enemyBottleHintEl.innerHTML = 'Nachricht der Gegnerin! 💀<br>Tippe drauf';
     enemyBottleHintEl.style.animation = 'pulse2 1.8s ease-in-out infinite';
+    // auch der Hinweistext öffnet die Nachricht (grosse Trefferzone)
+    enemyBottleHintEl.addEventListener('click', openEnemy);
+    enemyBottleHintEl.addEventListener('touchend', openEnemy, {passive:false});
     stage.appendChild(enemyBottleHintEl);
   }
 
