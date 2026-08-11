@@ -160,19 +160,22 @@
     50%     { transform:translate(-50%,-77%) rotate(-2.5deg); }
   }
   #enemy-ship > svg { width:100%; height:auto; display:block; position:relative; z-index:1; }
+  /* Foto sitzt gut sichtbar direkt über dem Rumpf */
   #enemy-face {
     position:absolute; left:50%; top:0;
-    transform:translate(-50%,-86%);
-    width:46%; z-index:2;
+    transform:translate(-50%,-80%);
+    width:52%; z-index:3;
   }
   #enemy-face img {
     width:100%; display:block; border-radius:50%;
-    border:2px solid #2a2a2a;
+    border:2px solid #2a2a2a; aspect-ratio:1/1; object-fit:cover;
+    box-shadow:0 2px 6px rgba(0,0,0,.4);
   }
+  /* Flagge deutlich HÖHER, damit sie das Foto nicht überdeckt */
   #enemy-flag {
-    position:absolute; left:52%; top:-6%;
-    transform:translate(-50%,-70%);
-    width:52%; z-index:3; pointer-events:none;
+    position:absolute; left:50%; top:0;
+    transform:translate(-50%,-155%);
+    width:42%; z-index:2; pointer-events:none;
   }
   #enemy-flag svg { width:100%; height:auto; display:block; }
 
@@ -710,8 +713,8 @@ const BOTTLE_MESSAGES = [
     /* ---- Nachricht der bösen Piratin LeninaBallerina ----
        Sichtbar über 3 Tage. Passe date (Start) und until (Ende) an,
        oder verschiebe den Zeitraum, wie du magst.                 */
-    date:  new Date(2026, 7, 12),  // 12.08.2026  Start
-    until: new Date(2026, 7, 14),  // 14.08.2026  Ende  -> 3 Tage sichtbar
+    date:  new Date(2026, 7, 11),  // 11.08.2026  Start
+    until: new Date(2026, 7, 13),  // 13.08.2026  Ende  -> 3 Tage sichtbar
     kind:  "enemy",
     from:  "LeninaBallerina",
     task:  "GUSCH D. GUGU,\n\ndu und deine lächerliche Crew werdet mich NIEMALS aufholen.\n\nIch habe bereits fast alle Inseln bezwungen und das One Piece ist zum Greifen nah — mir fehlt nicht mehr viel, dann gehört es MIR!\n\nUnd wenn ich es erst in den Händen halte, dann werde ich dich finden... und zerstören.\n\n— LeninaBallerina, die euch alle überholt 🏴‍☠️💀"
@@ -1080,14 +1083,20 @@ function shipIslandOffset(){
 }
 
 /* ---------- GEGNER-SCHIFF (LeninaBallerina) ---------- */
-const ENEMY_LEAD = 0.15;   // Vorsprung des Gegners (Anteil der Reststrecke)
+/* Lenina ist schon fast am Ziel ("dramatisch knapp").
+   ENEMY_BASE = wie weit sie mindestens vorne ist (0.86 = 86% der Reise).
+   Sie klettert langsam Richtung Ziel, bleibt aber immer VOR Gusti,
+   und erst wenn Gusti selbst fast oben ist, schliesst er knapp auf. */
+const ENEMY_BASE = 0.58;   // Grundposition: deutlich vorne, aber nicht am Ziel
+const ENEMY_MAX  = 0.90;   // so nah darf sie ans Ziel (nie ganz -> Gusti gewinnt)
 
 function enemyProgress(){
-  // Gegner liegt vor Gusti, der Vorsprung schrumpft Richtung Ziel,
-  // sodass Gusti bei 100% fast aufgeschlossen hat (dramatisch knapp).
   const p = getProgress();
-  let e = p + ENEMY_LEAD * (1 - p);
-  return Math.min(0.985, e);   // nie ganz am One Piece -> Gusti gewinnt knapp
+  // von ENEMY_BASE aus Richtung ENEMY_MAX kriechen
+  let e = ENEMY_BASE + (ENEMY_MAX - ENEMY_BASE) * p;
+  // Sicherheit: immer ein gutes Stück vor Gusti
+  e = Math.max(e, p + 0.18);
+  return Math.min(ENEMY_MAX, e);
 }
 
 function positionEnemy(){
@@ -1343,10 +1352,21 @@ function maybeShowEnemyBottle(){
   const enemy = document.getElementById('enemy-ship');
   if(!enemy || enemy.style.display === 'none') return;
 
-  // Position: direkt unterhalb/neben dem Gegner-Schiff
-  const r = enemy.getBoundingClientRect();
-  const bx = r.left + r.width * 0.5;
-  const by = r.top  + r.height * 0.62;
+  // Position DIREKT aus Leninas Route-Punkt berechnen (nicht aus dem
+  // gerade fahrenden Schiff -> sonst landet die Flasche daneben).
+  const svg   = document.getElementById('map-svg');
+  const route = document.getElementById('route');
+  const ctm   = route.getScreenCTM();
+  if(!ctm) return;
+  const len = route.getTotalLength();
+  const pt  = route.getPointAtLength(len * enemyProgress());
+  const sp  = svg.createSVGPoint();
+  // etwas seitlich (auf die dem Kurs abgewandte Seite) und leicht darunter
+  sp.x = pt.x + 60;
+  sp.y = pt.y + 28;
+  const scr = sp.matrixTransform(ctm);
+  const bx = scr.x;
+  const by = scr.y;
 
   // Flasche erstellen (falls noch nicht vorhanden)
   if(!enemyBottleEl){
