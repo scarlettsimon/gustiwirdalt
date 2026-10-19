@@ -151,7 +151,7 @@
     width:min(26vw, 10vh, 110px);
     animation:bobEnemy 3.4s ease-in-out infinite;
     pointer-events:none;
-    transition:left 1.4s cubic-bezier(.45,0,.3,1), top 1.4s cubic-bezier(.45,0,.3,1);
+    transition:left 1.4s cubic-bezier(.45,0,.3,1), top 1.4s cubic-bezier(.45,0,.3,1), opacity 1.5s;
     filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));
     display:none;
   }
@@ -178,6 +178,58 @@
     width:42%; z-index:2; pointer-events:none;
   }
   #enemy-flag svg { width:100%; height:auto; display:block; }
+
+  /* ---------- STURM & NEBEL ---------- */
+  #storm-tint {
+    position:absolute; inset:0; z-index:21; pointer-events:none;
+    display:none;
+    background:linear-gradient(180deg, rgba(40,50,65,.45) 0%, rgba(60,70,85,.25) 55%, rgba(60,70,85,.08) 100%);
+  }
+  #rain {
+    position:absolute; inset:0; z-index:24; pointer-events:none;
+    display:none; overflow:hidden;
+  }
+  .drop {
+    position:absolute; top:-10%;
+    width:1.5px; height:20px;
+    background:linear-gradient(transparent, rgba(225,235,245,.8));
+    animation:fall linear infinite;
+  }
+  @keyframes fall {
+    from { transform:translate(0,0) rotate(12deg); }
+    to   { transform:translate(-30vh,125vh) rotate(12deg); }
+  }
+  #lightning {
+    position:absolute; inset:0; z-index:25; pointer-events:none;
+    background:#fff; opacity:0;
+  }
+  /* Nebel über der ganzen Karte (über Karte/Inseln, unter den Schiffen) */
+  #fog {
+    position:absolute; inset:0; z-index:21; pointer-events:none;
+    display:none; overflow:hidden;
+    background:rgba(236,234,226,.22);          /* leichter Grundschleier */
+  }
+  .fog-bank {
+    position:absolute;
+    border-radius:50%;
+    background:radial-gradient(ellipse at center,
+      rgba(244,242,236,.75) 0%, rgba(244,242,236,.4) 45%, rgba(244,242,236,0) 72%);
+    filter:blur(14px);
+    animation:fogDrift ease-in-out infinite alternate;
+    will-change:transform;
+  }
+  @keyframes fogDrift {
+    from { transform:translateX(-12vw); }
+    to   { transform:translateX(12vw); }
+  }
+  /* Schiff schaukelt im Sturm viel stärker */
+  #ship.storm { animation:bobStorm 1.5s ease-in-out infinite; }
+  @keyframes bobStorm {
+    0%,100% { transform:translate(-50%,-70%) rotate(-7deg); }
+    50%     { transform:translate(-50%,-80%) rotate(6deg); }
+  }
+  /* Lenina verschwindet halb im Nebel */
+  #enemy-ship.storm { opacity:.45; }
 
   /* ---------- KANONENKUGELN ---------- */
   .cannonball {
@@ -471,6 +523,13 @@
     <div id="map-sub">Kurs auf den Schatz · Ankunft: ???</div>
 
     <svg id="map-svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <!-- Weichzeichner für die Nebelbänke -->
+        <filter id="fogBlur" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="7"/>
+        </filter>
+      </defs>
+
       <g stroke="#b99a5f" stroke-width="1" opacity=".35" fill="none">
         <path d="M20 220 q20 -8 40 0 t40 0"/>
         <path d="M300 280 q20 -8 40 0 t40 0"/>
@@ -507,6 +566,12 @@
         <text x="0" y="-42" text-anchor="middle" font-size="15" fill="#c0392b" font-weight="bold">ONE PIECE</text>
       </g>
     </svg>
+
+    <!-- Sturm-Ebenen (nur sichtbar, wenn STORM aktiv ist) -->
+    <div id="storm-tint"></div>
+    <div id="fog"></div>
+    <div id="rain"></div>
+    <div id="lightning"></div>
 
     <!-- ===== GEGNER-SCHIFF (LeninaBallerina) ===== -->
     <div id="enemy-ship">
@@ -670,17 +735,50 @@ const END_DATE   = new Date(2027, 6, 26);  // 26.07.2027
 
 /* ---- INSELN / ETAPPEN ----
    name    = Text auf der Insel (z.B. "BURNING MAN")
-   icon    = "fire" | "flag-br" | "question"  (Symbol)
+   icon    = "fire" | "flag-br" | "bike" | "wave" | "question"  (Symbol)
    arrive  = Datum, wann er ankommt
    leave   = Datum, wann er weiterfährt
+   mystery = true -> Insel liegt ab FOG.from im NEBEL: kein Name, kein Symbol, nur "?"
+             (vorher sieht sie aus wie jede andere noch unbekannte Insel).
+             Sobald du weisst, was die Insel ist: name + icon eintragen
+             und mystery auf false setzen (oder die Zeile löschen).
    Reihenfolge: von unten (Start) nach oben (Ziel)
 */
 const ISLANDS = [
   { name:"BURNING MAN",  icon:"fire",     arrive:new Date(2026,7,30),  leave:new Date(2026,8,7)  },
-  { name:"BIKE-TOUR",    icon:"bike",     arrive:new Date(2026,9,15),  leave:new Date(2026,9,25) },
-  { name:"BRAZIL",       icon:"flag-br",  arrive:new Date(2027,1,5),   leave:new Date(2027,1,25) },
+  { name:"BIKE-TOUR",    icon:"bike",     arrive:new Date(2026,9,15),  leave:new Date(2026,9,24) },  // zurück am 24.10.2026
+  { name:"BRAZIL",       icon:"flag-br",  arrive:new Date(2027,1,5),   leave:new Date(2027,1,25), mystery:true },  // im Nebel – Name/Datum später festlegen
   { name:"FIRST TRACK",  icon:"wave",     arrive:new Date(2027,4,10),  leave:new Date(2027,4,20) }
 ];
+
+/* ---- STURM ----
+   In diesem Zeitraum tobt ein Sturm auf der Karte:
+   dunkler Himmel, Regen, Blitze, das Schiff schaukelt stark
+   und Lenina verschwindet halb im Nebel.
+   offCourse = wie weit Gustis Schiff vom Kurs abgetrieben wird
+               (negativ = nach links, positiv = nach rechts, 0 = bleibt auf Kurs)
+   Nach "until" hört der Sturm auf – der Nebel über der mystery-Insel
+   bleibt aber, bis du dort mystery:false setzt.
+   Sturm ganz ausschalten: const STORM = null;
+*/
+const STORM = {
+  from:      new Date(2026, 9, 24),   // 24.10.2026 – zieht auf, sobald er zurück ist
+  until:     new Date(2026, 10, 30),  // 30.11.2026 – danach wieder ruhige See
+  offCourse: -70,
+  subtitle:  "⛈️ Sturm auf der Grand Line · Sicht gleich null"
+};
+
+/* ---- NEBEL ----
+   from  = ab diesem Tag liegt die mystery-Insel im Nebel
+           ("im Nebel verschollen") und die ganze Karte wird neblig.
+   until = bis zu diesem Tag ist die GANZE KARTE neblig.
+           Der dichte Nebel über der mystery-Insel bleibt auch danach,
+           bis du dort mystery:false setzt.
+*/
+const FOG = {
+  from:  new Date(2026, 9, 24),   // 24.10.2026
+  until: new Date(2026, 10, 30),  // 30.11.2026
+};
 
 /* ---- FLASCHENPOST-TAGE ----
    An diesen Tagen kommt das Schiff vom Kurs ab und dockt an einer
@@ -691,10 +789,9 @@ const ISLANDS = [
    kind = "task"  -> Aufgabe: Schiff macht den Abstecher (Standard, kann weggelassen werden)
           "reply" -> Antwort/Bestätigung: Schiff bleibt AUF KURS, nur eine kurze Botschaft
           "enemy" -> Nachricht der Gegnerin: erscheint beim GEGNER-Schiff.
-                     Kann mit "until" einen Zeitraum bekommen (mehrere Tage sichtbar).
 
-   until = (optional) Enddatum -> Nachricht ist von "date" bis "until" (einschliesslich) sichtbar.
-           Ohne "until" gilt sie nur am Tag "date".
+   until = (optional, für ALLE Arten) Enddatum -> Nachricht ist von "date" bis
+           "until" (einschliesslich) sichtbar. Ohne "until" gilt sie nur am Tag "date".
 
    Du kannst so viele Einträge hinzufügen, wie du willst.
 */
@@ -718,6 +815,14 @@ const BOTTLE_MESSAGES = [
     kind:  "enemy",
     from:  "LeninaBallerina",
     task:  "GUSCH D. GUGU,\n\ndu und deine lächerliche Crew werdet mich NIEMALS aufholen.\n\nIch habe bereits fast alle Inseln bezwungen und das One Piece ist zum Greifen nah — mir fehlt nicht mehr viel, dann gehört es MIR!\n\nUnd wenn ich es erst in den Händen halte, dann werde ich dich finden... und zerstören.\n\n— LeninaBallerina, die euch alle überholt 🏴‍☠️💀"
+  },
+  {
+    /* ---- Rückkehr von der Bike-Tour: Sturm & Nebel ----
+       Sichtbar 24.–28.10., damit er sie sicher sieht.           */
+    date:  new Date(2026, 9, 24),  // 24.10.2026
+    until: new Date(2026, 9, 28),  // 28.10.2026
+    kind:  "reply",
+    task:  "Willkommen zurück an Bord, Käpt'n! 🚲⚓\n\nDie Bike-Tour-Insel ist bezwungen — doch kaum hatten wir abgelegt, zog ein gewaltiger Sturm auf.\n\nDie Strömung hat uns vom Kurs abgetrieben, und dichter Nebel hat die nächste Insel verschluckt. Selbst vom Ausguck aus ist nichts mehr zu erkennen.\n\nNiemand weiss, was uns dort erwartet...\nHaltet die Segel fest. Der Nebel lichtet sich erst, wenn die Zeit reif ist. 🌫️"
   },
 ];
 /* ======================================= */
@@ -750,12 +855,54 @@ function inDayRange(now, start, end){
   return n >= s && n <= e;
 }
 
+/* Ab FOG.from (tagesgenau)? */
+function fogStarted(){
+  if(!FOG) return false;
+  const n = today();
+  const t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  const s = new Date(FOG.from.getFullYear(), FOG.from.getMonth(), FOG.from.getDate());
+  return t >= s;
+}
+
+/* Liegt diese Insel heute im Nebel? */
+function islandInFog(is){
+  return !!is.mystery && fogStarted();
+}
+
+/* Ist heute die ganze Karte neblig? */
+function mapFogActive(){
+  return !!FOG && inDayRange(today(), FOG.from, FOG.until);
+}
+
+/* Nebelbänke über die ganze Karte legen */
+function startMapFog(){
+  if(!mapFogActive()) return;
+  const fog = document.getElementById('fog');
+  fog.innerHTML = '';
+  const banks = 9;
+  for(let i=0; i<banks; i++){
+    const b = document.createElement('div');
+    b.className = 'fog-bank';
+    const w = 70 + Math.random()*60;           // Breite in vw
+    const h = 14 + Math.random()*14;           // Höhe in vh
+    b.style.width  = w + 'vw';
+    b.style.height = h + 'vh';
+    b.style.left   = (-30 + Math.random()*70) + 'vw';
+    b.style.top    = (-5 + (i/banks)*85 + Math.random()*6) + 'vh';
+    b.style.opacity = (.55 + Math.random()*.4).toFixed(2);
+    b.style.animationDuration = (22 + Math.random()*26) + 's';
+    b.style.animationDelay = (-Math.random()*30) + 's';
+    fog.appendChild(b);
+  }
+  fog.style.display = 'block';
+}
+
 /* Gibt die "normale" Flaschenpost (task/reply) für heute zurück (oder null) */
 function bottleForToday(){
   const now = today();
   for(const b of BOTTLE_MESSAGES){
     if(b.kind === "enemy") continue;   // Gegner-Nachrichten separat
-    if(sameDay(now, b.date)) return b;
+    if(inDayRange(now, b.date, b.until || b.date)) return b;
   }
   return null;
 }
@@ -769,6 +916,11 @@ function enemyBottleForToday(){
     if(inDayRange(now, b.date, end)) return b;
   }
   return null;
+}
+
+/* Tobt heute der Sturm? */
+function stormActive(){
+  return !!STORM && inDayRange(today(), STORM.from, STORM.until);
 }
 
 document.getElementById('c-name').textContent = NAME;
@@ -1021,6 +1173,30 @@ function iconSvg(type){
   return `<text x="0" y="6" text-anchor="middle" font-size="20" font-weight="bold" fill="#8a6a35">?</text>`;
 }
 
+/* Nebelbank über einer verborgenen Insel */
+function fogIslandSvg(){
+  const drift = (dx, dy, dur) =>
+    `<animateTransform attributeName="transform" type="translate"
+       values="0 0; ${dx} ${dy}; 0 0" dur="${dur}s" repeatCount="indefinite"/>`;
+  return `
+    <ellipse rx="34" ry="22" fill="#c9a86a" stroke="#8a6a35" stroke-width="1.5"
+             stroke-dasharray="4 4" opacity=".3"/>
+    <g filter="url(#fogBlur)" fill="#f3f0e8">
+      <!-- äusserer Nebelring (gross, weich) -->
+      <ellipse cx="-30" cy="-6" rx="52" ry="28" opacity=".55">${drift(12,-3,13)}</ellipse>
+      <ellipse cx="32"  cy="8"  rx="56" ry="30" opacity=".55">${drift(-12,3,15)}</ellipse>
+      <!-- dichter Kern direkt über der Insel -->
+      <ellipse cx="-22" cy="-2" rx="38" ry="20" opacity=".9">${drift(9,-2,7)}</ellipse>
+      <ellipse cx="20"  cy="4"  rx="42" ry="22" opacity=".95">${drift(-10,2,9)}</ellipse>
+      <ellipse cx="0"   cy="-16" rx="32" ry="16" opacity=".85">${drift(6,3,11)}</ellipse>
+      <ellipse cx="4"   cy="18" rx="34" ry="14" opacity=".8">${drift(-7,-1,8)}</ellipse>
+    </g>
+    <text x="0" y="8" text-anchor="middle" font-size="24" font-weight="bold"
+          fill="#8a7a5a" opacity=".8">?</text>
+    <text x="-30" y="44" text-anchor="start" font-size="11" font-style="italic"
+          fill="#6e5e40">im Nebel verschollen</text>`;
+}
+
 /* Inseln entlang der Route platzieren */
 function drawIslands(){
   const route = document.getElementById('route');
@@ -1039,13 +1215,21 @@ function drawIslands(){
     const ix = pt.x + side * 78;
     const iy = pt.y;
 
+    const el = document.createElementNS('http://www.w3.org/2000/svg','g');
+    el.setAttribute('transform', `translate(${ix},${iy})`);
+
+    // Insel im Nebel -> nichts verraten (erst ab FOG.from)
+    if(islandInFog(is)){
+      el.innerHTML = fogIslandSvg();
+      g.appendChild(el);
+      return;
+    }
+
     const active   = (info.state === "at" && i === info.index);
     const passed   = (today() > is.leave);
     // Zukünftige Inseln: sichtbar, aber ohne Name/Symbol
     const revealed = (info.state === "done") || (i <= info.index);
 
-    const el = document.createElementNS('http://www.w3.org/2000/svg','g');
-    el.setAttribute('transform', `translate(${ix},${iy})`);
     el.innerHTML = `
       <ellipse rx="${active?40:34}" ry="${active?26:22}"
                fill="${passed ? '#b39355' : '#c9a86a'}"
@@ -1082,21 +1266,23 @@ function shipIslandOffset(){
   return 0;
 }
 
+/* Im Sturm vom Kurs abgetrieben? (nicht, wenn er gerade an einer Insel liegt) */
+function stormOffset(){
+  if(!stormActive()) return 0;
+  if(currentIslandInfo().state === "at") return 0;
+  return STORM.offCourse || 0;
+}
+
 /* ---------- GEGNER-SCHIFF (LeninaBallerina) ---------- */
-/* Lenina ist schon fast am Ziel ("dramatisch knapp").
-   ENEMY_BASE = wie weit sie mindestens vorne ist (0.86 = 86% der Reise).
-   Sie klettert langsam Richtung Ziel, bleibt aber immer VOR Gusti,
-   und erst wenn Gusti selbst fast oben ist, schliesst er knapp auf. */
-const ENEMY_BASE = 0.58;   // Grundposition: deutlich vorne, aber nicht am Ziel
-const ENEMY_MAX  = 0.90;   // so nah darf sie ans Ziel (nie ganz -> Gusti gewinnt)
+/* Lenina ist GESTOPPT: sie bleibt fest an dieser Stelle der Route
+   und erreicht das One Piece nie.
+   ENEMY_STOP = ihre Position auf der Reise (0.655 = 65.5%, Stand 19.10.2026).
+   Willst du sie später wieder ein Stück bewegen, änderst du nur diese Zahl
+   (aber nie 1.0 -> das wäre das One Piece). */
+const ENEMY_STOP = 0.655;
 
 function enemyProgress(){
-  const p = getProgress();
-  // von ENEMY_BASE aus Richtung ENEMY_MAX kriechen
-  let e = ENEMY_BASE + (ENEMY_MAX - ENEMY_BASE) * p;
-  // Sicherheit: immer ein gutes Stück vor Gusti
-  e = Math.max(e, p + 0.18);
-  return Math.min(ENEMY_MAX, e);
+  return ENEMY_STOP;
 }
 
 function positionEnemy(){
@@ -1120,6 +1306,46 @@ function positionEnemy(){
 
   enemy.style.left = screen.x + 'px';
   enemy.style.top  = screen.y + 'px';
+}
+
+/* ---------- STURM: Regen, Blitze, Schaukeln ---------- */
+function startStorm(){
+  if(!stormActive()) return;
+
+  document.getElementById('storm-tint').style.display = 'block';
+
+  const rain = document.getElementById('rain');
+  rain.style.display = 'block';
+  rain.innerHTML = '';
+  for(let i=0; i<70; i++){
+    const d = document.createElement('div');
+    d.className = 'drop';
+    d.style.left = (Math.random()*130) + '%';
+    d.style.animationDuration = (.55 + Math.random()*.45) + 's';
+    d.style.animationDelay = (-Math.random()) + 's';
+    d.style.opacity = (.35 + Math.random()*.6).toFixed(2);
+    rain.appendChild(d);
+  }
+
+  document.getElementById('ship').classList.add('storm');
+  document.getElementById('enemy-ship').classList.add('storm');
+  if(STORM.subtitle) document.getElementById('map-sub').textContent = STORM.subtitle;
+
+  lightningLoop();
+}
+
+function lightningLoop(){
+  const l = document.getElementById('lightning');
+  setTimeout(()=>{
+    l.animate([
+      { opacity:0 },
+      { opacity:.75, offset:.08 },
+      { opacity:.1,  offset:.22 },
+      { opacity:.55, offset:.32 },
+      { opacity:0 }
+    ], { duration:750, easing:'ease-out' });
+    lightningLoop();
+  }, 5000 + Math.random()*9000);
 }
 
 /* ---------- KANONENKUGELN zwischen den Schiffen ---------- */
@@ -1222,6 +1448,12 @@ function showMap(){
     drawRoute(p);
     positionShip(shipProgress(), shipIslandOffset());
     positionEnemy();
+    startStorm();
+    startMapFog();
+    // Im Sturm: Schiff treibt sichtbar vom Kurs ab
+    if(stormOffset()){
+      setTimeout(()=> positionShip(shipProgress(), shipIslandOffset() + stormOffset()), 900);
+    }
     // Nach dem normalen Setzen: prüfen, ob heute eine Flaschenpost wartet
     maybeStartBottleDetour(p);
     maybeShowEnemyBottle();
@@ -1274,6 +1506,8 @@ function maybeStartBottleDetour(baseProgress){
 
   // Punkt auf der Route bei aktuellem Fortschritt
   const basePt = route.getPointAtLength(len * baseProgress);
+  // falls der Sturm das Schiff abgetrieben hat, von dort aus rechnen
+  const baseX  = basePt.x + stormOffset();
 
   // Abstecher-Ziel: seitlich vom Kurs abkommen (mal links, mal rechts,
   // je nach Tag, damit es abwechslungsreich wirkt)
@@ -1294,10 +1528,10 @@ function maybeStartBottleDetour(baseProgress){
     return sp.matrixTransform(ctm);
   }
 
-  const shipTarget   = toScreen(basePt.x + detourDX,        basePt.y + detourDY);
+  const shipTarget   = toScreen(baseX + detourDX,        basePt.y + detourDY);
   // Flasche liegt bei "reply" einfach seitlich neben dem Schiff
   const bottleSide   = isReply ? side * 60 : side * 54;
-  const bottleTarget = toScreen(basePt.x + detourDX + bottleSide, basePt.y + detourDY - 6);
+  const bottleTarget = toScreen(baseX + detourDX + bottleSide, basePt.y + detourDY - 6);
 
   if(isReply){
     // Schiff bleibt auf Kurs -> nur Flaschenpost neben ihm einblenden
@@ -1506,7 +1740,7 @@ function positionShip(p, offsetX){
 window.addEventListener('resize', ()=>{
   if(document.getElementById('map').style.display === 'block'){
     drawIslands();
-    positionShip(shipProgress(), shipIslandOffset());
+    positionShip(shipProgress(), shipIslandOffset() + stormOffset());
     positionEnemy();
     maybeShowEnemyBottle();
     // Bei Größenänderung Flaschenpost-Position neu berechnen,
